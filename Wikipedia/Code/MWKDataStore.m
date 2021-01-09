@@ -13,7 +13,7 @@ NSString *const WMFFeedImportContextDidSave = @"WMFFeedImportContextDidSave";
 NSString *const WMFViewContextDidSave = @"WMFViewContextDidSave";
 
 NSString *const WMFLibraryVersionKey = @"WMFLibraryVersion";
-static const NSInteger WMFCurrentLibraryVersion = 11;
+static const NSInteger WMFCurrentLibraryVersion = 12;
 
 NSString *const MWKDataStoreValidImageSitePrefix = @"//upload.wikimedia.org/";
 
@@ -110,9 +110,8 @@ NSString *MWKCreateImageURLWithPath(NSString *path) {
         [self startSynchronizingLibraryContexts];
         [self setupHistoryAndSavedPageLists];
         self.languageLinkController = [[MWKLanguageLinkController alloc] initWithManagedObjectContext:self.viewContext];
-        self.feedContentController = [[WMFExploreFeedContentController alloc] init];
-        self.feedContentController.dataStore = self;
-        self.feedContentController.siteURLs = self.languageLinkController.preferredSiteURLs;
+        self.feedContentController = [[WMFExploreFeedContentController alloc] initWithDataStore:self];
+        [self.feedContentController updateContentSources];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didReceiveMemoryWarningWithNotification:) name:UIApplicationDidReceiveMemoryWarningNotification object:nil];
         self.wikidataDescriptionEditingController = [[WikidataDescriptionEditingController alloc] initWithSession:session configuration:configuration];
         self.remoteNotificationsController = [[RemoteNotificationsController alloc] initWithSession:session configuration:configuration preferredLanguageCodesProvider:self.languageLinkController];
@@ -439,6 +438,15 @@ NSString *MWKCreateImageURLWithPath(NSString *path) {
         }
     }
     
+    if (currentLibraryVersion < 12) {
+        [[WMFEventLoggingService sharedInstance] migrateShareUsageAndInstallIDToUserDefaults];
+        [moc wmf_setValue:@(12) forKey:WMFLibraryVersionKey];
+        if ([moc hasChanges] && ![moc save:&migrationError]) {
+            DDLogError(@"Error saving during migration: %@", migrationError);
+            return;
+        }
+    }
+
     // IMPORTANT: When adding a new library version and migration, update WMFCurrentLibraryVersion to the latest version number
 }
 
@@ -595,13 +603,17 @@ NSString *MWKCreateImageURLWithPath(NSString *path) {
     [self clearMemoryCache];
 }
 
-#pragma - Accessors
+#pragma mark - Accessors
 
 - (MWKRecentSearchList *)recentSearchList {
     if (!_recentSearchList) {
         _recentSearchList = [[MWKRecentSearchList alloc] initWithDataStore:self];
     }
     return _recentSearchList;
+}
+
+- (nullable NSURL*)primarySiteURL {
+    return self.languageLinkController.appLanguage.siteURL;
 }
 
 #pragma mark - History and Saved Page List
@@ -959,7 +971,7 @@ NSString *MWKCreateImageURLWithPath(NSString *path) {
 #pragma mark - WMFAuthenticationManagerDelegate
 
 - (nullable NSURL*)loginSiteURL {
-    return self.languageLinkController.appLanguage.siteURL;
+    return self.primarySiteURL;
 }
 
 - (void)authenticationManagerDidLogin {

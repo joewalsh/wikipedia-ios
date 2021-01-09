@@ -10,7 +10,7 @@
  *     stream intake service.
  *
  * LICENSE NOTICE
- *     Copyright 2019 Wikimedia Foundation
+ *     Copyright 2020 Wikimedia Foundation
  *
  *     Redistribution and use in source and binary forms, with or without
  *     modification, are permitted provided that the following conditions are
@@ -47,28 +47,42 @@ import CocoaLumberjackSwift
  *
  * iOS schemas will always include the following fields which are managed by EPC
  * and which will be assigned automatically by the library:
- * - `client_dt`: client-side timestamp of when event was originally submitted
+ * - `dt`: client-side timestamp of when event was originally submitted
  * - `app_install_id`: app install ID as in legacy EventLoggingService
  * - `app_session_id`: the ID of the session at the time of the event when it was
  *   originally submitted
  */
 @objc (WMFEventPlatformClient)
-public class EPC: NSObject {    
+public class EventPlatformClient: NSObject, SamplingControllerDelegate {
     // MARK: - Properties
 
-    @objc(sharedInstance) public static let shared: EPC? = {
-        guard let legacyEventLoggingService = EventLoggingService.shared else {
-            DDLogError("EPCStorageManager: Unable to get pull legacy EventLoggingService instance for instantiating EPCStorageManager")
-            return nil
-        }
-
-        return EPC(legacyEventLoggingService: legacyEventLoggingService)
+    @objc(sharedInstance) public static let shared: EventPlatformClient = {
+        return EventPlatformClient()
     }()
     
     // SINGLETONTODO
     /// Session for requesting data
     let session = MWKDataStore.shared().session
-    
+
+    let samplingController: SamplingController
+    let storageManager: StorageManager?
+
+    /**
+     * Store events until the library is finished initializing
+     *
+     * The EPC library makes an HTTP request to a remote stream configuration service for information
+     * about how to evaluate incoming event data. Until this initialization is complete, we store any incoming
+     * events in this buffer.
+     *
+     * Only modify (append events to, remove events from) asynchronously via `queue.async`
+     */
+    private var inputBuffer: [(Data, Stream)] = []
+
+    /**
+     * Maximum number of events allowed in the input buffer
+     */
+    private let inbutBufferLimit = 128
+
     /**
      * Streams are the event stream identifiers that can be utilized with the EventPlatformClientLibrary. They should
      *  correspond to the `$id` of a schema in
@@ -88,7 +102,7 @@ public class EPC: NSObject {
      * analytics-related schemas are collected.
      */
     public enum Schema: String, Codable {
-        case editHistoryCompareV1 = "/analytics/mobile_apps/ios_edit_history_compare/1.0.0"
+        case editHistoryCompare = "/analytics/mobile_apps/ios_edit_history_compare/2.0.0"
     }
 
     /**
@@ -110,7 +124,8 @@ public class EPC: NSObject {
      * **eventgate-analytics-external**.  This service uses the stream
      * configurations from Meta wiki as its source of truth.
      */
-    private let streamIntakeServiceURI: URL
+    private static let eventIntakeURI = URL(string: "https://intake-analytics.wikimedia.org/v1/events")!
+
     /**
      * MediaWiki API endpoint which returns stream configurations as JSON
      *
@@ -127,12 +142,12 @@ public class EPC: NSObject {
      * be "eventgate-analytics-external" (to filter out irrelevant streams from
      * the returned list of stream configurations).
      */
-    private let streamConfigServiceURI: URL
+    private static let streamConfigsURI = URL(string: "https://meta.wikimedia.org/w/api.php?action=streamconfigs&format=json&constraints=destination_event_service=eventgate-analytics-external")!
 
     /**
      * An individual stream's configuration.
      */
-    private struct StreamConfiguration: Codable {
+    struct StreamConfiguration: Codable {
         let sampling: Sampling?
         struct Sampling: Codable {
             let rate: Double?
@@ -156,7 +171,7 @@ public class EPC: NSObject {
         }
     }
     private var _streamConfigurations: [Stream: StreamConfiguration]? = nil
-    
+
     /**
      * Updated when app enters background, used for determining if the session has
      * expired.
@@ -170,7 +185,7 @@ public class EPC: NSObject {
      * The identifier is a string of 20 zero-padded hexadecimal digits
      * representing a uniformly random 80-bit integer.
      */
-    private var sessionID: String {
+    internal var sessionID: String {
         get {
             queue.sync {
                 guard let sID = _sessionID else {
@@ -185,86 +200,21 @@ public class EPC: NSObject {
     }
     private var _sessionID: String?
 
-    /**
-     * For retrieving app install ID and "share usage data" preference
-     */
-    private let legacyEventLoggingService: EventLoggingService
-
-    /**
-     * Store events until the library is finished initializing
-     *
-     * The EPC library makes an HTTP request to a remote stream configuration
-     * service for information about how to evaluate incoming event data. Until
-     * this initialization is complete, we store any incoming events in this
-     * buffer.
-     *
-     * Only modify (append events to, remove events from) *synchronously* via
-     * `queue.sync`
-     */
-    private var inputBuffer: [EventRequest] = []
-
-    /**
-     * Maximum number of events allowed in the input buffer
-     */
-    private let inbutBufferLimit = 128
-
-    /**
-     * Holds events that have been scheduled for POSTing
-     */
-    private var outputBuffer: [EventRequest] = []
-
-    /**
-     * Cache of "in sample" / "out of sample" determination for each stream
-     *
-     * The process of determining only has to happen the first time an event is
-     * logged to a stream for which stream configuration is available. All other
-     * times `in_sample` simply returns the cached determination.
-     *
-     * Only cache determinations asynchronously via `queue.async`
-     */
-    private var samplingCache: [Stream: Bool] = [:]
-
-    /**
-     * Install ID, used for streams configured with
-     * `sampling.identifier: "device"` and assigning to `app_install_id` field
-     * in event data
-     */
-    private var installID: String? {
-        return legacyEventLoggingService.appInstallID
-    }
-
-    /**
-     * Whether user has opted in to sharing usage data with us
-     */
-    private var sharingUsageData: Bool {
-        return legacyEventLoggingService.isEnabled
-    }
 
     // MARK: - Methods
 
-    private init?(legacyEventLoggingService: EventLoggingService) {
-        self.legacyEventLoggingService = legacyEventLoggingService
-
-        /* The streams that will be retrieved from the API will be the ones that
-         * specify "eventgate-analytics-external" for destination_event_service
-         * in the config. This serves two purposes: (1) lightens the payload, as
-         * the full stream config includes irrelevant streams (e.g. MediaWiki
-         * events and client-side error logging), and (2) we ensure that only
-         * streams with that destination are logged to, since
-         * eventgate-analytics-external is set up as a public endpoint at
-         * intake-analytics.wikimedia.org, where both EventLogging and this
-         * library send analytics events to.
-         */
-        guard let streamIntakeServiceURI = URL(string: "https://intake-analytics.wikimedia.org/v1/events"),
-            let streamConfigServiceURI = URL(string: "https://meta.wikimedia.org/w/api.php?action=streamconfigs&format=json&constraints=destination_event_service=eventgate-analytics-external") else {
-                DDLogError("EPC: Unable to instantiate URIs for stream intake and stream config services")
-                return nil
-        }
-
-        self.streamIntakeServiceURI = streamIntakeServiceURI
-        self.streamConfigServiceURI = streamConfigServiceURI
+    public override init() {
+        self.storageManager = StorageManager.shared
+        self.samplingController = SamplingController()
         
         super.init()
+
+        self.samplingController.delegate = self
+
+        guard self.storageManager != nil else {
+            DDLogError("EPC: Error initializing the storage manager. Event intake and submission will be disabled.")
+            return
+        }
 
         self.fetchStreamConfiguration(retries: 10, retryDelay: 30)
     }
@@ -329,7 +279,7 @@ public class EPC: NSObject {
         queue.async {
             self._sessionID = nil
         }
-        removeAllSamplingCache()
+        samplingController.removeAllSamplingCache()
     }
 
     /**
@@ -353,9 +303,9 @@ public class EPC: NSObject {
      *     every failed attempt
      */
     private func fetchStreamConfiguration(retries: Int, retryDelay: TimeInterval) {
-        self.httpGet(url: self.streamConfigServiceURI, completion: { (data, response, error) in
+        self.httpGet(url: EventPlatformClient.streamConfigsURI, completion: { (data, response, error) in
             guard let httpResponse = response as? HTTPURLResponse, let data = data, httpResponse.statusCode == 200 else {
-                DDLogWarn("EPC: Server did not respond adequately, will try \(self.streamConfigServiceURI.absoluteString) again")
+                DDLogWarn("EPC: Server did not respond adequately, will try \(EventPlatformClient.streamConfigsURI.absoluteString) again")
 
                 if retries > 0 {
                     dispatchOnMainQueueAfterDelayInSeconds(retryDelay) {
@@ -396,6 +346,10 @@ public class EPC: NSObject {
             DDLogDebug("EPC: Downloaded stream configs (raw): \(raw)")
         }
         #endif
+        guard let storageManager = self.storageManager else {
+            DDLogError("Storage manager not initialized; this shouldn't happen!")
+            return
+        }
         struct StreamConfigurationsJSON: Codable {
             let streams: [String: StreamConfiguration]
         }
@@ -415,11 +369,14 @@ public class EPC: NSObject {
             // NOTE: If any event is re-submitted while streamConfigurations
             // is still being set (asynchronously), they will just go back to
             // input buffer.
-            while let event = inputBufferPopFirst() {
-                guard inSample(stream: event.stream) else {
+            while let (data, stream) = inputBufferPopFirst() {
+                guard let config = streamConfigurations?[stream] else {
                     continue
                 }
-                appendPostToOutputBuffer(event)
+                guard samplingController.inSample(stream: stream, config: config) else {
+                    continue
+                }
+                storageManager.push(data: data, stream: stream)
             }
         } catch let error {
             DDLogError("EPC: Problem processing JSON payload from response: \(error)")
@@ -431,26 +388,36 @@ public class EPC: NSObject {
      * fire-and-forget fashion
      */
     private func postAllScheduled(_ completion: (() -> Void)? = nil) {
-        DDLogDebug("EPC: Posting all scheduled requests")
+        guard let storageManager = self.storageManager else {
+            completion?()
+            return
+        }
+
+        DDLogDebug("EPC: Processing all scheduled requests")
+        let events = storageManager.popAll()
+        if events.count == 0 {
+            DDLogDebug("EPC: Nothing to send.")
+            completion?()
+            return
+        }
+
         let group = DispatchGroup()
-        while let item = outputBufferPopFirst() {
+        for event in events {
             group.enter()
-            httpPost(url: item.url, body: item.data) { result in
+            httpPost(url: EventPlatformClient.eventIntakeURI, body: event.data) { result in
                 switch result {
                 case .success:
+                    storageManager.markPurgeable(event: event)
                     break
                 case .failure(let error):
                     switch error {
                     case .networkingLibraryError:
-                        guard item.attempt < 10 else {
-                            break
-                        }
-                        let nextRequest = EventRequest(url: item.url, data: item.data, stream: item.stream, attempt: item.attempt + 1)
-                        /// Retry on networking library failure
-                        self.appendPostToOutputBuffer(nextRequest)
+                        /// Leave unmarked to retry on networking library failure
+                        break
                     default:
                         /// Give up on events rejected by the server
-                        assert(false, "The analytics service failed to process an event. A response code of 400 could indicate that the event didn't conform to provided schema. Check the error for more information.: \(error)")
+                        DDLogError("EPC: The analytics service failed to process an event. A response code of 400 could indicate that the event didn't conform to provided schema. Check the error for more information.: \(error)")
+                        storageManager.markPurgeable(event: event)
                         break
                     }
                 }
@@ -461,102 +428,15 @@ public class EPC: NSObject {
             completion?()
         }
     }
-
-    /**
-     * Yields a deterministic (not stochastic) determination of whether the
-     * provided `id` is in-sample or out-of-sample according to the `acceptance`
-     * rate
-     * - Parameter id: identifier to use for determining sampling
-     * - Parameter acceptance: the desired proportion of many `token`-s being
-     *   accepted
-     *
-     * The algorithm works in a "widen the net on frozen fish" fashion -- tokens
-     * continue evaluating to true as the acceptance rate increases. For example,
-     * a device determined to be in-sample for a stream "A" having rate 0.1 will
-     * be determined to be in-sample for a stream "B" having rate 0.2, and its
-     * events will show up in tables "A" and "B".
-     */
-    private func determine(_ id: String, _ acceptance: Double) -> Bool {
-        guard let token = UInt32(id.prefix(8), radix: 16) else {
-            return false
-        }
-        return (Double(token) / Double(UInt32.max)) < acceptance
-    }
-
-    /**
-     * Compute a boolean function on a random identifier
-     * - Parameter stream: name of the stream
-     * - Returns: `true` if in sample or `false` otherwise
-     *
-     * The determinations are lazy and cached, so each stream's in-sample vs
-     * out-of-sample determination is computed only once, the first time an event
-     * is logged to that stream.
-     *
-     * Refer to sampling settings section in
-     * [mw:Wikimedia Product/Analytics Infrastructure/Stream configuration](https://www.mediawiki.org/wiki/Wikimedia_Product/Analytics_Infrastructure/Stream_configuration)
-     * for more information.
-     */
-    private func inSample(stream: Stream) -> Bool {
-
-        guard let configs = streamConfigurations else {
-            DDLogDebug("EPC: Invalid state, must have streamConfigurations to check for inSample")
-            return false
-        }
-
-        if let cachedValue = getSamplingForStream(stream) {
-            return cachedValue
-        }
-
-        guard let config = configs[stream] else {
-            let error = """
-            EPC: Invalid state, stream '\(stream)' must be present in streamConfigurations to check for inSample
-            but found only: \(configs.keys.map(\.rawValue).joined(separator: ", "))
-            """
-            DDLogError(error)
-            return false
-        }
-
-        guard let rate = config.sampling?.rate else {
-            /*
-             * If stream is present in streamConfigurations but doesn't have
-             * sampling settings, it is always in-sample.
-             */
-            cacheSamplingForStream(stream, inSample: true)
-            return true
-        }
-
-        /*
-         * All platforms use session ID as the default identifier for determining
-         * in- vs out-of-sample of events sent to streams. On the web, streams can
-         * be set to use pageview token instead. On the apps, streams can be set
-         * to use device token instead.
-         */
-        let sessionIdentifierType = "session"
-        let deviceIdentifierType = "device"
-        let identifierType = config.sampling?.identifier ?? sessionIdentifierType
-
-        guard identifierType == sessionIdentifierType || identifierType == deviceIdentifierType else {
-            DDLogDebug("EPC: Logged to stream which is not configured for sampling based on \(sessionIdentifierType) or \(deviceIdentifierType) identifier")
-            cacheSamplingForStream(stream, inSample: false)
-            return false
-        }
-
-        guard let identifier = identifierType == sessionIdentifierType ? sessionID : self.installID else {
-            DDLogError("EPC: Missing token for determining in- vs out-of-sample. Fallbacking to not in sample.")
-            cacheSamplingForStream(stream, inSample: false)
-            return false
-        }
-        let result = determine(identifier, rate)
-        cacheSamplingForStream(stream, inSample: result)
-        return result
-    }
     
-    /// EventBody is used to encod event data into the POST body of a request to the Modern Event Platform
+    /// EventBody is used to encode event data into the POST body of a request to the Modern Event Platform
     struct EventBody<E>: Encodable where E: EventInterface {
         /// EventGate needs to know which version of the schema to validate against
-        let meta: Meta
+        var meta: Meta
+
         struct Meta: Codable {
             let stream: Stream
+
             /**
              * meta.id is *optional* and should only be done in case the client is
              * known to send duplicates of events, otherwise we don't need to
@@ -565,21 +445,24 @@ public class EPC: NSObject {
             let id: UUID
             let domain: String?
         }
+
         let appInstallID: String
+
         /**
          * Generated events have the session ID attached to them before stream
          * config is available (in case they're generated offline) and before
          * they're cc'd to any other streams (once config is available).
          */
         let appSessionID: String
+
         /**
-         * The top-level field `client_dt` is for recording the time the event
+         * The top-level field `dt` is for recording the time the event
          * was generated. EventGate sets `meta.dt` during ingestion, so for
          * analytics events that field is used as "timestamp of reception" and
          * is used for partitioning the events in the database. See Phab:T240460
          * for more information.
          */
-        let clientDT: Date
+        let dt: Date
         
         /**
          * Event represents the client-provided event data.
@@ -588,13 +471,13 @@ public class EPC: NSObject {
          * the values from `event` will be used.
          */
         let event: E
-        
+
         enum CodingKeys: String, CodingKey {
             case schema = "$schema"
             case meta
             case appInstallID = "app_install_id"
             case appSessionID = "app_session_id"
-            case clientDT = "client_dt"
+            case dt
             case event
         }
         
@@ -604,7 +487,7 @@ public class EPC: NSObject {
                 try container.encode(meta, forKey: .meta)
                 try container.encode(appInstallID, forKey: .appInstallID)
                 try container.encode(appSessionID, forKey: .appSessionID)
-                try container.encode(clientDT, forKey: .clientDT)
+                try container.encode(dt, forKey: .dt)
                 try container.encode(E.schema, forKey: .schema)
                 try event.encode(to: encoder)
             } catch let error {
@@ -612,15 +495,7 @@ public class EPC: NSObject {
             }
         }
     }
-    
-    /// EventRequest stores the necessary information for persisting Event requests
-    struct EventRequest: Codable {
-        let url: URL
-        let data: Data
-        let stream: Stream
-        var attempt: Int = 1
-    }
-    
+
     /**
      * Submit an event according to the given stream's configuration.
      * - Parameters:
@@ -641,9 +516,9 @@ public class EPC: NSObject {
      * }
      *
      * let sourceInfo = TestEvent.SourceInfo(file: "Features/Feed/ExploreViewController.swift", method: "refreshControlActivated")
-     * let event = TestEvent(test_string: "Explore Feeed refreshed", test_map: sourceInfo)
+     * let event = TestEvent(test_string: "Explore Feed refreshed", test_map: sourceInfo)
      *
-     * EPC.shared?.submit(
+     * EventPlatformClient.shared?.submit(
      *   stream: .test, // Defined in `EPC.Stream`
      *   event: event
      * )
@@ -684,17 +559,25 @@ public class EPC: NSObject {
     }
 
     /// Private, synchronous version of `submit`.
-    private func _submit<E: EventInterface>(stream: Stream, event: E, date: Date, domain: String? = nil){
-        guard sharingUsageData else {
+    private func _submit<E: EventInterface>(stream: Stream, event: E, date: Date, domain: String? = nil) {
+        guard let storageManager = self.storageManager else {
             return
         }
-        guard let appInstallID = installID else {
-            DDLogDebug("EPC: Could not retrieve app install ID")
+
+        let userDefaults = UserDefaults.standard
+
+        if !userDefaults.wmf_sendUsageReports {
             return
         }
+
+        guard let appInstallID = userDefaults.wmf_appInstallId else {
+            DDLogWarn("EPC: App install ID is unset. This shouldn't happen.")
+            return
+        }
+
         let meta = EventBody<E>.Meta(stream: stream, id: UUID(), domain: domain)
 
-        let eventPayload = EventBody(meta: meta, appInstallID: appInstallID, appSessionID: sessionID, clientDT: date, event: event)
+        let eventPayload = EventBody(meta: meta, appInstallID: appInstallID, appSessionID: sessionID, dt: date, event: event)
         do {
             let encoder = JSONEncoder()
             encoder.dateEncodingStrategy = .iso8601
@@ -703,42 +586,40 @@ public class EPC: NSObject {
             encoder.outputFormatting = .prettyPrinted
             #endif
             
-            let jsonData = try encoder.encode(eventPayload)
+            let data = try encoder.encode(eventPayload)
             
             #if DEBUG
-            let jsonString = String(data: jsonData, encoding: .utf8)!
-            DDLogDebug("EPC: Scheduling event to be sent to \(streamIntakeServiceURI) with POST body:\n\(jsonString)")
+            let jsonString = String(data: data, encoding: .utf8)!
+            DDLogDebug("EPC: Scheduling event to be sent to \(EventPlatformClient.eventIntakeURI) with POST body:\n\(jsonString)")
             #endif
             
-            let request = EventRequest(url: streamIntakeServiceURI, data: jsonData, stream: stream)
             guard let streamConfigs = streamConfigurations else {
-                appendEventToInputBuffer(request)
+                appendEventToInputBuffer(data: data, stream: stream)
                 return
             }
-            
-            guard streamConfigs.keys.contains(stream) else {
+            guard let config = streamConfigs[stream] else {
                 DDLogDebug("EPC: Event submitted to '\(stream)' but only the following streams are configured: \(streamConfigs.keys.map(\.rawValue).joined(separator: ", "))")
                 return
             }
-            
-            guard inSample(stream: stream) else {
+            guard samplingController.inSample(stream: stream, config: config) else {
+                DDLogDebug("EPC: Stream '\(stream.rawValue)' is not in sample")
                 return
             }
-            appendPostToOutputBuffer(request)
+            storageManager.push(data: data, stream: stream)
         } catch let error {
             DDLogError("EPC: \(error.localizedDescription)")
         }
+
     }
 }
 
 //MARK: Thread-safe accessors for collection properties
-
-private extension EPC {
+private extension EventPlatformClient {
 
     /**
      * Thread-safe synchronous retrieval of buffered events
      */
-    func getInputBuffer() -> [EventRequest] {
+    func getInputBuffer() -> [(Data, Stream)] {
         queue.sync {
             return self.inputBuffer
         }
@@ -748,7 +629,7 @@ private extension EPC {
      * Thread-safe synchronous buffering of an event
      * - Parameter event: event to be buffered
      */
-    func appendEventToInputBuffer(_ event: EventRequest) {
+    func appendEventToInputBuffer(data: Data, stream: Stream) {
         queue.sync {
             /*
              * Check if input buffer has reached maximum allowed size. Practically
@@ -761,15 +642,16 @@ private extension EPC {
             if self.inputBuffer.count == self.inbutBufferLimit {
                 _ = self.inputBuffer.remove(at: 0)
             }
-            self.inputBuffer.append(event)
+            self.inputBuffer.append((data, stream))
         }
     }
+
 
     /**
      * Thread-safe synchronous removal of first buffered event
      * - Returns: a previously buffered event
      */
-    func inputBufferPopFirst() -> EventRequest? {
+    func inputBufferPopFirst() -> (Data, Stream)? {
         queue.sync {
             if self.inputBuffer.isEmpty {
                 return nil
@@ -777,67 +659,11 @@ private extension EPC {
             return self.inputBuffer.remove(at: 0)
         }
     }
-
-    /**
-     * Thread-safe asynchronous caching of a stream's in-vs-out-of-sample
-     * determination
-     * - Parameter stream: name of stream to cache determination for
-     * - Parameter inSample: whether the stream was determined to be in-sample
-     *   this session
-     */
-    func cacheSamplingForStream(_ stream: Stream, inSample: Bool) {
-        queue.async {
-            self.samplingCache[stream] = inSample
-        }
-    }
-
-    /**
-     * Thread-safe synchronous retrieval of a stream's cached in-vs-out-of-sample determination
-     * - Parameter stream: name of stream to retrieve determination for from the cache
-     * - Returns: `true` if stream was determined to be in-sample this session, `false` otherwise
-     */
-    func getSamplingForStream(_ stream: Stream) -> Bool? {
-        queue.sync {
-            return self.samplingCache[stream]
-        }
-    }
-
-    /**
-     * Thread-safe asynchronous clearance of cached stream in-vs-out-of-sample determinations
-     */
-    func removeAllSamplingCache() {
-        queue.async {
-            self.samplingCache.removeAll()
-        }
-    }
-
-    /**
-     * Thread-safe asynchronous buffering of an event scheduled for POSTing
-     * - Parameter post: an EventRequest
-     */
-    func appendPostToOutputBuffer(_ post: EventRequest) {
-        queue.async {
-            self.outputBuffer.append(post)
-        }
-    }
-    
-    /**
-     * Thread-safe synchronous removal of first scheduled event
-     * - Returns: a previously scheduled event
-     */
-    func outputBufferPopFirst() -> EventRequest? {
-        queue.sync {
-            if self.outputBuffer.isEmpty {
-                return nil
-            }
-            return self.outputBuffer.remove(at: 0)
-        }
-    }
 }
 
 //MARK: NetworkIntegration
 
-private extension EPC {
+private extension EventPlatformClient {
     /// PostEventError describes the possible failure cases when POSTing an event
     enum PostEventError: Error {
         case networkingLibraryError(_ error: Error)
@@ -847,11 +673,11 @@ private extension EPC {
     
     /**
      * HTTP POST
-     * - Parameter url: Where to POST data (`body`) to
      * - Parameter body: Body of the POST request
+     * - Parameter completion: callback invoked upon receiving the server response
      */
     private func httpPost(url: URL, body: Data? = nil, completion: @escaping ((Result<Void, PostEventError>) -> Void)) {
-        DDLogDebug("EPC: Attempting to POST data to \(url.absoluteString)")
+        DDLogDebug("EPC: Attempting to POST events")
         let request = session.request(with: url, method: .post, bodyData: body, bodyEncoding: .json)
         let task = session.dataTask(with: request, completionHandler: { (_, response, error) in
             let fail: (PostEventError) ->  Void = { error in
@@ -874,6 +700,7 @@ private extension EPC {
         })
         task?.resume()
     }
+
     /**
      * HTTP GET
      * - Parameter url: Where to GET data from
@@ -890,15 +717,20 @@ private extension EPC {
 
 //MARK: PeriodicWorker
 
-extension EPC: PeriodicWorker {
+extension EventPlatformClient: PeriodicWorker {
     public func doPeriodicWork(_ completion: @escaping () -> Void) {
-        self.postAllScheduled(completion)
+        guard let storageManager = self.storageManager else {
+            return
+        }
+        storageManager.pruneStaleEvents(completion: {
+            self.postAllScheduled(completion)
+        })
     }
 }
 
 //MARK: BackgroundFetcher
 
-extension EPC: BackgroundFetcher {
+extension EventPlatformClient: BackgroundFetcher {
     public func performBackgroundFetch(_ completion: @escaping (UIBackgroundFetchResult) -> Void) {
         doPeriodicWork {
             completion(.noData)
@@ -917,5 +749,5 @@ public protocol EventInterface: Codable {
      * Defines which schema this event conforms to.
      * Check the documentation for `EPC.Schema` for more information.
      */
-    static var schema: EPC.Schema { get }
+    static var schema: EventPlatformClient.Schema { get }
 }
