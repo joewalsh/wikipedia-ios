@@ -28,6 +28,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (nonnull NSString *)wmf_stringByRemovingHTML;
 
+- (NSString *)wmf_stringByDecodingHTMLEntities;
+
 /**
  * DEPRECATION WARNING: Utilize byAttributingString in String+HTML.swift for all new HTML --> NSAttributedString conversions. Only use this if absolutely necessary from Objective-C.
  */
@@ -40,6 +42,7 @@ NS_ASSUME_NONNULL_BEGIN
                                                       handlingLinks:(BOOL)handlingLinks
                                                       handlingLists:(BOOL)handlingLists
                                             handlingSuperSubscripts:(BOOL)handlingSuperSubscripts
+                                                   decodingEntities:(BOOL)decodeEntities
                                                          tagMapping:(nullable NSDictionary<NSString *, NSString *> *)tagMapping
                                             additionalTagAttributes:(nullable NSDictionary<NSString *, NSDictionary<NSAttributedStringKey, id> *> *)additionalTagAttributes;
 

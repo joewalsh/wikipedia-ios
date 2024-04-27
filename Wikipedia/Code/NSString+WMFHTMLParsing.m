@@ -241,6 +241,10 @@
 }
 
 - (nonnull NSString *)wmf_stringByRemovingHTMLWithParsingBlock:(nullable void (^)(NSString *lowercasedHTMLTagName, BOOL isEndTag, NSString *HTMLTagAttributes, NSInteger offset, NSInteger currentLocation))parsingBlock {
+    return [self wmf_stringByRemovingHTMLWithParsingBlock:parsingBlock decodingEntities:YES];
+}
+    
+- (nonnull NSString *)wmf_stringByRemovingHTMLWithParsingBlock:(nullable void (^)(NSString *lowercasedHTMLTagName, BOOL isEndTag, NSString *HTMLTagAttributes, NSInteger offset, NSInteger currentLocation))parsingBlock decodingEntities:(BOOL)decodeEntities {
     __block NSInteger offset = 0;
 
     NSMutableString *cleanedString = [self mutableCopy];
@@ -288,7 +292,7 @@
         if (currentLocation > plainTextStartLocation) {
             NSRange plainTextRange = NSMakeRange(plainTextStartLocation, currentLocation - plainTextStartLocation);
             NSString *plainText = [cleanedString substringWithRange:plainTextRange];
-            NSString *cleanedSubstring = [plainText wmf_stringByDecodingHTMLEntities];
+            NSString *cleanedSubstring = decodeEntities ? [plainText wmf_stringByDecodingHTMLEntities] : plainText;
             [cleanedString replaceCharactersInRange:plainTextRange withString:cleanedSubstring];
             NSInteger delta = cleanedSubstring.length - plainText.length;
             offset += delta;
@@ -304,7 +308,7 @@
     if (cleanedString.length > plainTextStartLocation) {
         NSRange plainTextRange = NSMakeRange(plainTextStartLocation, cleanedString.length - plainTextStartLocation);
         NSString *plainText = [cleanedString substringWithRange:plainTextRange];
-        NSString *cleanedSubstring = [plainText wmf_stringByDecodingHTMLEntities];
+        NSString *cleanedSubstring = decodeEntities ? [plainText wmf_stringByDecodingHTMLEntities] : plainText;
         [cleanedString replaceCharactersInRange:plainTextRange withString:cleanedSubstring];
     }
     return cleanedString;
@@ -314,7 +318,7 @@
     return [self wmf_stringByRemovingHTMLWithParsingBlock:NULL];
 }
 
-- (NSMutableAttributedString *)wmf_attributedStringFromHTMLWithFont:(UIFont *)font boldFont:(nullable UIFont *)boldFont italicFont:(nullable UIFont *)italicFont boldItalicFont:(nullable UIFont *)boldItalicFont color:(nullable UIColor *)color linkColor:(nullable UIColor *)linkColor handlingLinks:(BOOL)handlingLinks handlingLists:(BOOL)handlingLists handlingSuperSubscripts:(BOOL)handlingSuperSubscripts tagMapping:(nullable NSDictionary<NSString *, NSString *> *)tagMapping additionalTagAttributes:(nullable NSDictionary<NSString *, NSDictionary<NSAttributedStringKey, id> *> *)additionalTagAttributes {
+- (NSMutableAttributedString *)wmf_attributedStringFromHTMLWithFont:(UIFont *)font boldFont:(nullable UIFont *)boldFont italicFont:(nullable UIFont *)italicFont boldItalicFont:(nullable UIFont *)boldItalicFont color:(nullable UIColor *)color linkColor:(nullable UIColor *)linkColor handlingLinks:(BOOL)handlingLinks handlingLists:(BOOL)handlingLists handlingSuperSubscripts:(BOOL)handlingSuperSubscripts decodingEntities:(BOOL)decodeEntities tagMapping:(nullable NSDictionary<NSString *, NSString *> *)tagMapping additionalTagAttributes:(nullable NSDictionary<NSString *, NSDictionary<NSAttributedStringKey, id> *> *)additionalTagAttributes {
     boldFont = boldFont ?: font;
     italicFont = italicFont ?: font;
     boldItalicFont = boldItalicFont ?: font;
