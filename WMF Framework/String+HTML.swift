@@ -23,7 +23,7 @@ extension String {
         let boldItalicFont = UIFont.wmf_font(textStyle.with(weight: boldWeight, traits: [.traitItalic]), compatibleWithTraitCollection: traitCollection)
         var stringToAttribute: String = self.wmf_stringByDecodingHTMLEntities()
         if let boldingMatchesOf {
-            stringToAttribute.applyBoldTag(to: boldingMatchesOf)
+            stringToAttribute = stringToAttribute.applyingBoldTag(to: boldingMatchesOf)
         }
         return stringToAttribute.wmf_attributedStringFromHTML(
             with: font,
@@ -53,12 +53,12 @@ extension String {
     /// Applies a bold tag to the first portion of the string that matches the given string.
     /// Should already have HTML entities (like &amp; &lt; etc.) decoded before calling this method.
     /// - Parameter matchingString: the string to search for and bold.
-    public mutating func applyBoldTag(to matchingString: String) {
+    /// - Returns: This string with the bold tag applied to the matching string
+    public func applyingBoldTag(to matchingString: String) -> String {
         guard let range = rangeOfFirstMatchInHTMLContent(of: matchingString) else {
-            return
+            return self
         }
-        insert(contentsOf: HTMLTag.boldStart, at: range.lowerBound)
-        insert(contentsOf: HTMLTag.boldEnd, at: index(range.upperBound, offsetBy: HTMLTag.boldStart.count))
+        return replacingCharacters(in: range, with: [HTMLTag.boldStart, matchingString, HTMLTag.boldEnd].joined())
     }
     
     public func rangeOfFirstMatchInHTMLContent(of matchingString: String) -> Range<Index>? {
