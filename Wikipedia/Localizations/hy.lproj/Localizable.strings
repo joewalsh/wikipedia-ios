@@ -37,6 +37,8 @@
 "action-sort" = "Տեսակավորել";
 "action-undo" = "Հետ շրջել";
 "action-update" = "Թարմացնել";
+"alt-text-experiment-onboarding-secondary-button-title" = "Դիտել օրինակներ";
+"alt-text-survey-option-7" = "Ես ժամանակ չունեմ";
 "announcements-dismiss" = "Փակել";
 "article-delete" = "Ջնջել";
 "article-deleted-accessibility-notification" = "{{PLURAL:$1|Հոդվածը}} ջնջվել է";
@@ -57,7 +59,6 @@
 "clear-title-accessibility-label" = "Մաքրել";
 "close-button-accessibility-label" = "Փակել";
 "compass-direction" = "Ժամը $1";
-"description-edit-learn-more" = "Իմանալ ավելին";
 "description-help-about-title" = "Ծրագրի մասին";
 "description-help-about-wikidata" = "Վիքիտվյալների մասին";
 "description-help-tips-for-example" = "Օրինակ";
@@ -127,7 +128,6 @@
 "main-menu-about" = "Ծրագրի մասին";
 "main-menu-account-login" = "Մուտք գործել";
 "main-menu-account-logout" = "Դուրս գալ";
-"main-menu-account-logout-cancel" = "Չեղարկել";
 "main-menu-heading-legal" = "Գաղտնիություն և պայմաններ";
 "main-menu-nearby" = "Մոտակայքում";
 "main-menu-privacy-policy" = "Գաղտնիության քաղաքականություն";
@@ -135,7 +135,6 @@
 "main-menu-terms-of-use" = "Օգտագործման պայմաններ";
 "main-menu-title" = "Ավելին";
 "main-menu-zero-faq" = "Վիքիպեդիա Զրո ՀՏՀ";
-"menu-cancel-accessibility-label" = "Չեղարկել";
 "more-languages-tooltip-title" = "Ավելացնել լեզուներ";
 "navbar-title-mode-edit-wikitext-preview" = "Նախադիտում";
 "nearby-distance-label-feet" = "$1 ֆուտ";
@@ -149,6 +148,7 @@
 "notifications-center-go-to-wikidata-item" = "Վիկիտվյալների տառռ";
 "notifications-center-go-to-your-talk-page" = "Ձեր քննարկման էջ";
 "notifications-center-mark" = "Նշել";
+"notifications-center-mark-all-as-read" = "Նշել բոլորը որպես ընթերցված";
 "notifications-center-status-in-projects-plain" = "{{PLURAL:$1|1=1 նախագիծ|$1 նախագիծ}}";
 "notifications-center-swipe-mark-as-read" = "Նշել ընթերցված";
 "notifications-center-swipe-mark-as-unread" = "Նշել չընթերցված";
@@ -165,6 +165,7 @@
 "places-filter-button-title" = "Զտիչ";
 "places-search-default-text" = "Որոնել վայրեր";
 "places-search-top-articles-that-match-scope" = "Մոտակայքում";
+"profile-page-title-logged-out" = "Հաշիվ";
 "reading-list-create-new-list-description" = "Նկարագրություն";
 "replace-infolabel-method-replace" = "Փոխարինել";
 "replace-infolabel-method-replace-all" = "Փոխարինել բոլորը";
@@ -189,6 +190,8 @@
 "settings-primary-language" = "Հիմնական";
 "settings-title" = "Կարգավորումներ";
 "sort-by-title-action" = "Վերնագիր";
+"survey-other-placeholder" = "Այլ";
+"survey-title" = "Պատճառ";
 "table-of-contents-close-accessibility-hint" = "Փակել";
 "table-of-contents-heading" = "Բովանդակություն";
 "talk-page-discussion-read-accessibility-label" = "Կարդալ";
@@ -201,7 +204,6 @@
 "theme-sepia-display-name" = "Սեպիա";
 "unknown-generic-text" = "Անհայտ";
 "vanish-account-continue-button-title" = "Շարունակել";
-"vanish-account-learn-more-text" = "Իմանալ ավելին";
 "vanish-account-warning-title" = "Զգուշացում";
 "welcome-explore-new-ways-title" = "Ուսումնասիրելու նոր եղանակներ";
 "welcome-explore-tell-me-more-done-button" = "Հասկանալի է";
@@ -210,3 +212,7 @@
 "wikitext-upload-save" = "Պահպանվում է...";
 "wikitext-upload-save-sign-in" = "Մուտք գործել";
 "wikitext-upload-save-terms-name" = "Օգտագործման պայմաններ";
+"year-in-review-donate" = "Նվիրաբերել";
+"year-in-review-finish" = "Վերջացնել";
+"year-in-review-personalized-editing-subtitle-format-500plus" = "Դուք Վիքիպեդիան խմբագրել եք 500+ անգամ։ Շնորհակալություն, որ դուք կամավոր խմբագիրներից մեկն եք, որոնք փոփոխություններ են կատարում Վիքիմեդիա նախագծերում ամբողջ աշխարհում:";
+"year-in-review-personalized-editing-title-format-500plus" = "Դուք Վիքիպեդիան խմբագրել եք 500+ անգամ";

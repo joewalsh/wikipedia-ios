@@ -2,13 +2,13 @@ import CocoaLumberjackSwift
 
 extension ArticleViewController : ArticleTableOfContentsDisplayControllerDelegate {
     func getVisibleSection(with completion: @escaping (_ sectionID: Int, _ anchor: String) -> Void) {
-        webView.evaluateJavaScript("window.wmf.elementLocation.getFirstOnScreenSection(\(navigationBar.visibleHeight))") { (result, error) in
+        webView.evaluateJavaScript("window.wmf.elementLocation.getFirstOnScreenSection(\(0))") { (result, error) in
             guard
                 let info = result as? [String: Any],
                 let sectionId = info["id"] as? Int,
                 let anchor = info["anchor"] as? String
             else {
-                DDLogError("Error getting first on screen section: \(String(describing: error))")
+                DDLogWarn("Error getting first on screen section: \(String(describing: error))")
                 completion(-1, "")
                 return
             }

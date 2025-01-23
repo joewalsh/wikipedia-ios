@@ -1,6 +1,5 @@
 // Messages for Galician (galego)
 // Exported from translatewiki.net
-// Author: Amire80
 // Author: Athena in Wonderland
 // Author: Banjo
 // Author: Chairego apc
@@ -123,7 +122,6 @@
 "continue-reading-empty-title" = "Non hai artigos lidos recentemente";
 "description-add-title" = "Engadir unha descrición";
 "description-edit-for-article" = "Descrición do artigo $1";
-"description-edit-learn-more" = "Máis información";
 "description-edit-length-warning" = "$1 / $2";
 "description-edit-license" = "Ó alterar a descrición do artigo, acepto os $1 e publico irrevogablemente as miñas contribucións baixo a licenza $2.";
 "description-edit-pencil-introduction" = "Editar introdución";
@@ -182,7 +180,6 @@
 "edit-summary-choice-fixed-grammar" = "Corrección gramatical";
 "edit-summary-choice-fixed-typos" = "Corrección ortográfica";
 "edit-summary-choice-linked-words" = "Ligazóns engadidas";
-"edit-summary-learn-more-text" = "Máis información";
 "edit-summary-placeholder-text" = "Como mellorou o artigo?";
 // Fuzzy
 "edit-watch-list-learn-more-text" = "Máis información sobre as listas de vixiancia";
@@ -395,7 +392,6 @@
 "main-menu-account-login" = "Acceder";
 "main-menu-account-logout" = "Saír";
 "main-menu-account-logout-are-you-sure" = "Está seguro de que quere pechar a sesión?";
-"main-menu-account-logout-cancel" = "Cancelar";
 "main-menu-account-title-logged-in" = "Sesión iniciada como $1";
 "main-menu-heading-legal" = "Privacidade e Condicións";
 "main-menu-nearby" = "Preto";
@@ -404,7 +400,6 @@
 "main-menu-terms-of-use" = "Termos de Uso";
 "main-menu-title" = "Máis";
 "main-menu-zero-faq" = "Preguntas frecuentes sobre a Wikipedia Zero";
-"menu-cancel-accessibility-label" = "Cancelar";
 "more-languages-tooltip-description" = "Procurar en Wikipedia en máis de 300 linguas";
 "more-languages-tooltip-title" = "Engadir linguas";
 "move-articles-to-reading-list" = "Trasladar {{PLURAL:$1|$1 artigo|$1 artigos}} á lista de lectura";

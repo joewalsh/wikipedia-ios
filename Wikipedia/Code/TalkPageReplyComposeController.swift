@@ -1,5 +1,5 @@
 import Foundation
-import UIKit
+import WMFComponents
 import WMF
 
 protocol TalkPageReplyComposeDelegate: AnyObject {
@@ -19,7 +19,7 @@ class TalkPageReplyComposeController {
     // containerView - the view that contains the contentView. It has the drag handle and pan gesture attached.
     // contentView - the view with the reply compose UI elements (close button, publish button, text views)
     
-    typealias ReplyComposableViewController = ViewController & TalkPageReplyComposeDelegate & TalkPageTextViewLinkHandling
+    typealias ReplyComposableViewController = TalkPageViewController & TalkPageReplyComposeDelegate & TalkPageTextViewLinkHandling
     private var viewController: ReplyComposableViewController?
     private(set) var commentViewModel: TalkPageCellCommentViewModel?
     
@@ -404,7 +404,7 @@ class TalkPageReplyComposeController {
         contentView?.replyTextView.resignFirstResponder()
         
         guard let authenticationManager = authenticationManager,
-        !authenticationManager.isLoggedIn else {
+              !authenticationManager.authStateIsPermanent else {
             isLoading = true
             viewController?.tappedPublish(text: text, commentViewModel: commentViewModel)
             return
@@ -432,7 +432,7 @@ extension TalkPageReplyComposeController: Themeable {
     func apply(theme: Theme) {
         containerView?.backgroundColor = theme.colors.paperBackground
         containerView?.layer.shadowColor = theme.colors.shadow.cgColor
-        dragHandleView?.backgroundColor = .gray675
+        dragHandleView?.backgroundColor = WMFColor.gray675
         contentView?.apply(theme: theme)
     }
 }

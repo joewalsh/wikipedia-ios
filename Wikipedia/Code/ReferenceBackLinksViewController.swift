@@ -1,13 +1,28 @@
-class ReferenceBackLinksViewController: ReferenceViewController {    
+import WMFComponents
+
+class ReferenceBackLinksViewController: ReferenceViewController {
     var index = 0
     let backLinks: [ReferenceBackLink]
+    
+    lazy var toolbarContainerView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
+    lazy var toolbar: UIToolbar = {
+        let tb = UIToolbar()
+        tb.translatesAutoresizingMaskIntoConstraints = false
+        return tb
+    }()
     
     init?(referenceId: String, referenceText:String, backLinks: [ReferenceBackLink], delegate: ReferenceBackLinksViewControllerDelegate?, theme: Theme) {
         guard backLinks.count > 0 else {
             return nil
         }
         self.backLinks = backLinks
-        super.init(theme: theme)
+        super.init(nibName: nil, bundle: nil)
+        self.theme = theme
         self.referenceId = referenceId
         self.referenceLinkText = referenceText
         self.delegate = delegate
@@ -30,6 +45,20 @@ class ReferenceBackLinksViewController: ReferenceViewController {
     lazy var countItem = UIBarButtonItem(customView: countContainer)
 
     func setupToolbar() {
+        
+        toolbarContainerView.addSubview(toolbar)
+        view.addSubview(toolbarContainerView)
+        
+        NSLayoutConstraint.activate([
+            toolbarContainerView.safeAreaLayoutGuide.bottomAnchor.constraint(equalTo: toolbar.bottomAnchor),
+            toolbarContainerView.leadingAnchor.constraint(equalTo: toolbar.leadingAnchor),
+            toolbarContainerView.trailingAnchor.constraint(equalTo: toolbar.trailingAnchor),
+            toolbarContainerView.topAnchor.constraint(equalTo: toolbar.topAnchor),
+            view.bottomAnchor.constraint(equalTo: toolbarContainerView.bottomAnchor),
+            view.leadingAnchor.constraint(equalTo: toolbarContainerView.leadingAnchor),
+            view.trailingAnchor.constraint(equalTo: toolbarContainerView.trailingAnchor)
+        ])
+        
         let flexibleSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
 
         toolbar.items = [countItem, flexibleSpace, previousButton, nextButton]
@@ -38,13 +67,11 @@ class ReferenceBackLinksViewController: ReferenceViewController {
             previousButton.isEnabled = false
             nextButton.isEnabled = false
         }
-        enableToolbar()
-        setToolbarHidden(false, animated: false)
     }
 
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
-        countLabel.font = UIFont.wmf_font(.footnote, compatibleWithTraitCollection: traitCollection)
+        countLabel.font = WMFFont.for(.footnote, compatibleWith: traitCollection)
     }
     
     // MARK: View Lifecycle
@@ -104,5 +131,9 @@ class ReferenceBackLinksViewController: ReferenceViewController {
         }
         countLabel.textColor = theme.colors.secondaryText
         view.backgroundColor = .clear
+        
+        toolbarContainerView.backgroundColor = theme.colors.paperBackground
+        toolbar.setBackgroundImage(theme.navigationBarBackgroundImage, forToolbarPosition: .any, barMetrics: .default)
+        toolbar.isTranslucent = false
     }
 }

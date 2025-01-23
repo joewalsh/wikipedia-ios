@@ -112,7 +112,6 @@
 "main-menu-account-login" = "შესვლა";
 "main-menu-account-logout" = "გასვლა";
 "main-menu-account-logout-are-you-sure" = "დარწმუნებული ხართ, რომ გსურთ გასვლა?";
-"main-menu-account-logout-cancel" = "გაუქმება";
 "main-menu-account-title-logged-in" = "შესული ხართ როგორც $1.";
 "main-menu-heading-legal" = "კონფიდენციალურობა და პირობები";
 "main-menu-nearby" = "სიახლოვეს";
@@ -121,7 +120,6 @@
 "main-menu-terms-of-use" = "გამოყენების პირობები";
 "main-menu-title" = "მეტი";
 "main-menu-zero-faq" = "ვიკიპედია ზეროს ხშირი შეკითხვები";
-"menu-cancel-accessibility-label" = "გაუქმება";
 "more-languages-tooltip-title" = "ენების დამატება";
 "navbar-title-mode-edit-wikitext-preview" = "წინასწარ გადახედვა";
 "nearby-distance-label-feet" = "$1 ფუტი";

@@ -1,7 +1,8 @@
 import UIKit
 import WMF
 import CocoaLumberjackSwift
-import WKData
+import WMFData
+import WMFComponents
 
 struct StubRevisionModel {
     let revisionId: Int
@@ -16,7 +17,7 @@ protocol DiffRevisionRetrieving: AnyObject {
     func refreshRevisions()
 }
 
-class DiffContainerViewController: ViewController {
+class DiffContainerViewController: ThemeableViewController, WMFNavigationBarConfiguring {
     
     struct NextPrevModel {
         let from: WMFPageHistoryRevision
@@ -24,8 +25,7 @@ class DiffContainerViewController: ViewController {
     }
     
     private var containerViewModel: DiffContainerViewModel
-    private var headerExtendedView: DiffHeaderExtendedView?
-    private var diffHeaderView: DiffHeaderView?
+
     private var scrollingEmptyViewController: EmptyViewController?
     private var diffListViewController: DiffListViewController?
     private var diffToolbarView: DiffToolbarView?
@@ -52,15 +52,9 @@ class DiffContainerViewController: ViewController {
     
     var animateDirection: DiffRevisionTransition.Direction?
     
-    private var wkProject: WKProject? {
-        return wikimediaProject?.wkProject
+    private var wmfProject: WMFProject? {
+        return wikimediaProject?.wmfProject
     }
-    
-    lazy private(set) var fakeProgressController: FakeProgressController = {
-        let progressController = FakeProgressController(progress: navigationBar, delegate: navigationBar)
-        progressController.delay = 0.0
-        return progressController
-    }()
 
     var hintController: HintController?
 
@@ -122,7 +116,7 @@ class DiffContainerViewController: ViewController {
         self.fromModel = nil
         self.needsSetNavDelegate = needsSetNavDelegate
         
-        super.init()
+        super.init(nibName: nil, bundle: nil)
         self.theme = theme
         
         self.containerViewModel.stateHandler = { [weak self] oldState in
@@ -150,7 +144,7 @@ class DiffContainerViewController: ViewController {
         
         self.needsSetNavDelegate = needsSetNavDelegate
         
-        super.init()
+        super.init(nibName: nil, bundle: nil)
         
         self.theme = theme
         
@@ -167,7 +161,6 @@ class DiffContainerViewController: ViewController {
         super.viewDidLoad()
         
         WatchlistFunnel.shared.logDiffOpen(project: wikimediaProject)
-        setupBackButton()
 
         let onLoad = { [weak self] in
             
@@ -211,6 +204,8 @@ class DiffContainerViewController: ViewController {
         if let toolbarView = diffToolbarView {
             view.bringSubviewToFront(toolbarView)
         }
+        
+        configureNavigationBar()
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -224,21 +219,6 @@ class DiffContainerViewController: ViewController {
         }
         
         resetPrevNextAnimateState()
-    }
-    
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-
-        if let emptyViewController = scrollingEmptyViewController {
-            navigationBar.setNeedsLayout()
-            navigationBar.layoutSubviews()
-            let bottomSafeAreaHeight = safeAreaBottomAlignView.frame.height
-            let bottomHeight = bottomSafeAreaHeight
-            let targetRect = CGRect(x: 0, y: navigationBar.visibleHeight, width: emptyViewController.view.frame.width, height: emptyViewController.view.frame.height - navigationBar.visibleHeight - bottomHeight)
-
-            let convertedTargetRect = view.convert(targetRect, to: emptyViewController.view)
-            emptyViewController.centerEmptyView(within: convertedTargetRect)
-        }
     }
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -270,27 +250,16 @@ class DiffContainerViewController: ViewController {
         default:
             view.backgroundColor = theme.colors.paperBackground
         }
-        
-        diffHeaderView?.apply(theme: theme)
-        headerExtendedView?.apply(theme: theme)
+
         diffListViewController?.apply(theme: theme)
         scrollingEmptyViewController?.apply(theme: theme)
         diffToolbarView?.apply(theme: theme)
     }
-
-    private func setupBackButton() {
-        let buttonTitle: String
-        switch type {
-        case .compare: buttonTitle = CommonStrings.compareRevisionsTitle
-        case .single:
-            guard let toDate = toModel?.revisionDate as NSDate? else {
-                return
-            }
-            let dateString = toDate.wmf_fullyLocalizedRelativeDateStringFromLocalDateToNow()
-            buttonTitle = String.localizedStringWithFormat(CommonStrings.revisionMadeFormat, dateString.lowercased())
-        }
+    
+    private func configureNavigationBar() {
+        let titleConfig = WMFNavigationBarTitleConfig(title:  CommonStrings.compareRevisionsTitle, customView: nil, alignment: .hidden)
         
-        navigationItem.configureForEmptyNavBarTitle(backTitle: buttonTitle)
+        configureNavigationBar(titleConfig: titleConfig, closeButtonConfig: nil, profileButtonConfig: nil, searchBarConfig: nil, hideNavigationBarOnScroll: false)
     }
 }
 
@@ -443,12 +412,10 @@ private extension DiffContainerViewController {
         }
         
         populateNewHeaderViewModel()
-        setupHeaderViewIfNeeded()
         setupDiffListViewControllerIfNeeded()
         fetchLeadImageIfNeeded()
         fetchWatchAndRollbackStatus()
         fetchEditCountIfNeeded()
-        setupBackButton()
         apply(theme: theme)
     }
     
@@ -468,7 +435,7 @@ private extension DiffContainerViewController {
         
         // Still need models for enabling/disabling prev/next buttons
         populatePrevNextModelsForToolbar()
-        diffToolbarView?.undoButton.isEnabled = wkProject != nil
+        diffToolbarView?.undoButton.isEnabled = wmfProject != nil
     }
     
     func setThankAndMoreState(isEnabled: Bool) {
@@ -590,12 +557,10 @@ private extension DiffContainerViewController {
         switch containerViewModel.state {
 
         case .loading:
-            fakeProgressController.start()
             scrollingEmptyViewController?.view.isHidden = true
             diffListViewController?.view.isHidden = true
             setThankAndMoreState(isEnabled: false)
         case .empty:
-            fakeProgressController.stop()
             setupScrollingEmptyViewControllerIfNeeded()
             switch type {
             case .compare:
@@ -613,7 +578,6 @@ private extension DiffContainerViewController {
             diffListViewController?.view.isHidden = true
             setThankAndMoreState(isEnabled: true)
         case .error(let error):
-            fakeProgressController.stop()
             showNoInternetConnectionAlertOrOtherWarning(from: error)
             setupScrollingEmptyViewControllerIfNeeded()
             switch type {
@@ -626,7 +590,6 @@ private extension DiffContainerViewController {
             diffListViewController?.view.isHidden = true
             setThankAndMoreState(isEnabled: false)
         case .data:
-            fakeProgressController.stop()
             scrollingEmptyViewController?.view.isHidden = true
             
             if let direction = animateDirection {
@@ -687,11 +650,11 @@ private extension DiffContainerViewController {
     
     func fetchWatchAndRollbackStatus() {
         
-        guard let articleTitle, let wkProject else {
+        guard let articleTitle, let wmfProject else {
             return
         }
         
-        WKWatchlistDataController().fetchWatchStatus(title: articleTitle, project: wkProject, needsRollbackRights: true) { result in
+        WMFWatchlistDataController().fetchWatchStatus(title: articleTitle, project: wmfProject, needsRollbackRights: true) { result in
             DispatchQueue.main.async { [weak self] in
                 
                 guard let self else {
@@ -701,9 +664,9 @@ private extension DiffContainerViewController {
                 switch result {
                 case .success(let status):
                     
-                    let needsWatchButton = !status.watched && FeatureFlags.watchlistEnabled
-                    let needsUnwatchHalfButton = status.watched && status.watchlistExpiry != nil && FeatureFlags.watchlistEnabled
-                    let needsUnwatchFullButton = status.watched && status.watchlistExpiry == nil && FeatureFlags.watchlistEnabled
+                    let needsWatchButton = !status.watched
+                    let needsUnwatchHalfButton = status.watched && status.watchlistExpiry != nil
+                    let needsUnwatchFullButton = status.watched && status.watchlistExpiry == nil
                     let needsArticleEditHistoryButton = true
                     
                     self.diffToolbarView?.updateMoreButton(needsRollbackButton: (status.userHasRollbackRights ?? false), needsWatchButton: needsWatchButton, needsUnwatchHalfButton: needsUnwatchHalfButton, needsUnwatchFullButton: needsUnwatchFullButton, needsArticleEditHistoryButton: needsArticleEditHistoryButton)
@@ -741,7 +704,8 @@ private extension DiffContainerViewController {
             return
         }
         headerViewModel.imageURL = leadImageURL
-        diffHeaderView?.updateImageView(with: headerViewModel)
+        
+        diffListViewController?.collectionView.reloadData()
     }
 
     func updateHeaderWithIntermediateCounts(_ editCounts: EditCountsGroupedByType) {
@@ -754,7 +718,7 @@ private extension DiffContainerViewController {
 
             let newTitleViewModel = DiffHeaderViewModel.generateTitleViewModelForCompare(articleTitle: articleTitle, byteDifference: byteDifference)
             headerViewModel.title = newTitleViewModel
-            diffHeaderView?.updateTitleView(with: newTitleViewModel)
+            diffListViewController?.collectionView.reloadData()
         case .single:
             assertionFailure("Should not call this method for the compare type.")
         }
@@ -776,7 +740,7 @@ private extension DiffContainerViewController {
         }
         
         // update view
-        headerExtendedView?.update(headerViewModel)
+        diffListViewController?.collectionView.reloadData()
     }
     
     func fetchFirstDiff() {
@@ -818,8 +782,6 @@ private extension DiffContainerViewController {
         DispatchQueue.main.async {
             self.diffListViewController?.applyListViewModelChanges(updateType: .initialLoad(width: collectionViewWidth ?? 0))
             
-            self.diffListViewController?.updateScrollViewInsets()
-            
             self.containerViewModel.state = listViewModels.count == 0 ? .empty : .data
         }
     }
@@ -854,51 +816,6 @@ private extension DiffContainerViewController {
         }
     }
 
-    func setupHeaderViewIfNeeded() {
-        
-        guard let headerViewModel = containerViewModel.headerViewModel else {
-            return
-        }
-        
-        if self.diffHeaderView == nil {
-            let headerView = DiffHeaderView(frame: .zero)
-            headerView.translatesAutoresizingMaskIntoConstraints = false
-            
-            navigationBar.isUnderBarViewHidingEnabled = true
-            navigationBar.allowsUnderbarHitsFallThrough = true
-            navigationBar.addUnderNavigationBarView(headerView)
-            navigationBar.underBarViewPercentHiddenForShowingTitle = 0.6
-            navigationBar.isShadowShowing = false
-            
-            self.diffHeaderView = headerView
-        }
-        
-        if self.headerExtendedView == nil {
-            let headerExtendedView = DiffHeaderExtendedView(frame: .zero)
-            headerExtendedView.translatesAutoresizingMaskIntoConstraints = false
-            
-            navigationBar.allowsUnderbarHitsFallThrough = true
-            navigationBar.allowsExtendedHitsFallThrough = true
-            navigationBar.addExtendedNavigationBarView(headerExtendedView)
-            headerExtendedView.delegate = self
-            
-            self.headerExtendedView = headerExtendedView
-        }
-        
-        navigationBar.isBarHidingEnabled = false
-        useNavigationBarVisibleHeightForScrollViewInsets = true
-        
-        switch headerViewModel.headerType {
-        case .compare(_, let navBarTitle):
-            navigationBar.title = navBarTitle
-        default:
-            break
-        }
-        diffHeaderView?.configure(with: headerViewModel, titleViewTapDelegate: self)
-        headerExtendedView?.update(headerViewModel)
-        navigationBar.isExtendedViewHidingEnabled = headerViewModel.isExtendedViewHidingEnabled
-    }
-    
     func setupScrollingEmptyViewControllerIfNeeded() {
         
         guard scrollingEmptyViewController == nil else {
@@ -915,7 +832,7 @@ private extension DiffContainerViewController {
             
             addChild(emptyViewController)
             emptyView.translatesAutoresizingMaskIntoConstraints = false
-            view.insertSubview(emptyView, belowSubview: navigationBar)
+            view.addSubview(emptyView)
             let bottomAnchor = diffToolbarView?.topAnchor ?? safeAreaBottomAlignView.bottomAnchor
             let bottom = emptyView.bottomAnchor.constraint(equalTo: bottomAnchor)
             let leading = view.leadingAnchor.constraint(equalTo: emptyView.leadingAnchor)
@@ -949,7 +866,7 @@ private extension DiffContainerViewController {
             self.diffToolbarView = toolbarView
             toolbarView.delegate = self
             toolbarView.translatesAutoresizingMaskIntoConstraints = false
-            view.insertSubview(toolbarView, aboveSubview: navigationBar)
+            view.addSubview(toolbarView)
             let bottom = view.bottomAnchor.constraint(equalTo: toolbarView.bottomAnchor)
             let leading = view.leadingAnchor.constraint(equalTo: toolbarView.leadingAnchor)
             let trailing = view.trailingAnchor.constraint(equalTo: toolbarView.trailingAnchor)
@@ -961,8 +878,41 @@ private extension DiffContainerViewController {
     }
     
     func setupDiffListViewControllerIfNeeded() {
+        
+        guard let diffHeaderViewModel = containerViewModel.headerViewModel else {
+            return
+        }
+        
         if diffListViewController == nil {
-            let diffListViewController = DiffListViewController(theme: theme, delegate: self, type: type)
+            
+            let tappedHeaderTitleAction = { [weak self] in
+                guard let navigationURL = self?.fetchPageURL() else {
+                    return
+                }
+
+                self?.navigate(to: navigationURL)
+            }
+            
+            let tappedUsernameAction: (Username, DiffHeaderUsernameDestination) -> Void = { [weak self] username, destination in
+                guard let self,
+                      let username = username.normalizedPageTitle else {
+                    return
+                }
+                
+                let url: URL?
+                switch destination {
+                case .userContributions:
+                    url = self.siteURL.wmf_URL(withPath: "/wiki/Special:Contributions/\(username)", isMobile: true)
+                case .userTalkPage:
+                    url = self.siteURL.wmf_URL(withPath: "/wiki/User_talk:\(username)", isMobile: true)
+                case .userPage:
+                    url = self.siteURL.wmf_URL(withPath: "/wiki/User:\(username)", isMobile: true)
+                }
+                
+                navigate(to: url)
+            }
+            
+            let diffListViewController = DiffListViewController(theme: theme, type: type, diffHeaderViewModel: diffHeaderViewModel, tappedHeaderUsernameAction: tappedUsernameAction, tappedHeaderTitleAction: tappedHeaderTitleAction)
             self.diffListViewController = diffListViewController
             
             switch type {
@@ -971,16 +921,30 @@ private extension DiffContainerViewController {
                    let toolbarView = diffToolbarView {
                     addChild(diffListViewController)
                     listView.translatesAutoresizingMaskIntoConstraints = false
-                    view.insertSubview(listView, belowSubview: navigationBar)
+                    view.addSubview(listView)
                     let bottom = toolbarView.topAnchor.constraint(equalTo: listView.bottomAnchor)
                     let leading = view.leadingAnchor.constraint(equalTo: listView.leadingAnchor)
                     let trailing = view.trailingAnchor.constraint(equalTo: listView.trailingAnchor)
-                    let top = view.topAnchor.constraint(equalTo: listView.topAnchor)
+                    let top = view.safeAreaLayoutGuide.topAnchor.constraint(equalTo: listView.topAnchor)
                     NSLayoutConstraint.activate([top, leading, trailing, bottom])
                     diffListViewController.didMove(toParent: self)
                 }
             case .compare:
-                wmf_add(childController: diffListViewController, andConstrainToEdgesOfContainerView: view, belowSubview: navigationBar)
+                
+                if let listView = diffListViewController.view,
+                   let toolbarView = diffToolbarView {
+                    addChild(diffListViewController)
+                    listView.translatesAutoresizingMaskIntoConstraints = false
+                    view.addSubview(listView)
+                    
+                    let bottom = toolbarView.topAnchor.constraint(equalTo: listView.bottomAnchor)
+                    let leading = view.leadingAnchor.constraint(equalTo: listView.leadingAnchor)
+                    let trailing = view.trailingAnchor.constraint(equalTo: listView.trailingAnchor)
+                    let top = view.safeAreaLayoutGuide.topAnchor.constraint(equalTo: listView.topAnchor)
+                    
+                    NSLayoutConstraint.activate([top, leading, trailing, bottom])
+                    diffListViewController.didMove(toParent: self)
+                }
             }
             
             
@@ -992,7 +956,7 @@ private extension DiffContainerViewController {
         if UserDefaults.standard.bool(forKey: key) {
             return
         }
-        let panelVC = DiffEducationalPanelViewController(showCloseButton: false, primaryButtonTapHandler: { [weak self] (action) in
+        let panelVC = DiffEducationalPanelViewController(showCloseButton: false, primaryButtonTapHandler: { [weak self] _, _ in
             self?.presentedViewController?.dismiss(animated: true)
         }, secondaryButtonTapHandler: nil, dismissHandler: nil, discardDismissHandlerOnPrimaryButtonTap: true, theme: theme)
         present(panelVC, animated: true)
@@ -1029,69 +993,15 @@ private extension DiffContainerViewController {
     }
 }
 
-extension DiffContainerViewController: DiffListDelegate {
-    func diffListScrollViewDidScroll(_ scrollView: UIScrollView) {
-        self.scrollViewDidScroll(scrollView)
-    }
-}
-
 extension DiffContainerViewController: EmptyViewControllerDelegate {
     func triggeredRefresh(refreshCompletion: @escaping () -> Void) {
         // no refreshing
     }
     
     func emptyViewScrollViewDidScroll(_ scrollView: UIScrollView) {
-        self.scrollViewDidScroll(scrollView)
+       // no-op
     }
 }
-
-extension DiffContainerViewController: DiffHeaderActionDelegate {
-    
-    func tappedUsername(username: String, destination: DiffHeaderUsernameDestination) {
-        
-        guard let username = username.normalizedPageTitle else {
-            return
-        }
-        
-        let url: URL?
-        switch destination {
-        case .userContributions:
-            url = siteURL.wmf_URL(withPath: "/wiki/Special:Contributions/\(username)", isMobile: true)
-        case .userTalkPage:
-            url = siteURL.wmf_URL(withPath: "/wiki/User_talk:\(username)", isMobile: true)
-        case .userPage:
-            url = siteURL.wmf_URL(withPath: "/wiki/User:\(username)", isMobile: true)
-        }
-        
-        navigate(to: url)
-    }
-    
-    func tappedRevision(revisionID: Int) {
-        
-        guard let fromModel = fromModel,
-              let toModel = toModel,
-              let articleTitle = articleTitle else {
-            assertionFailure("Revision tapping is not supported on a page without models or articleTitle.")
-            return
-        }
-        
-        let revision: WMFPageHistoryRevision
-        if revisionID == fromModel.revisionID {
-            revision = fromModel
-        } else if revisionID == toModel.revisionID {
-            revision = toModel
-        } else {
-            assertionFailure("Trouble determining revision model to push on next")
-            return
-        }
-        
-        EditHistoryCompareFunnel.shared.logRevisionView(url: siteURL)
-        
-        let singleDiffVC = DiffContainerViewController(articleTitle: articleTitle, siteURL: siteURL, fromModel: nil, toModel: revision, theme: theme, revisionRetrievingDelegate: revisionRetrievingDelegate,  firstRevision: firstRevision, needsSetNavDelegate: needsSetNavDelegate, articleSummaryController: diffController.articleSummaryController, authenticationManager: diffController.authenticationManager)
-        push(singleDiffVC, animated: true)
-    }
-}
-
 extension DiffContainerViewController: ThanksGiving {
     var url: URL? {
         return siteURL
@@ -1165,7 +1075,6 @@ class RevisionAuthorThanksErrorHintVC: HintViewController {
 }
 
 extension DiffContainerViewController: DiffToolbarViewDelegate {
-    
     private func replaceLastAndPush(with viewController: UIViewController) {
         if var newViewControllers = navigationController?.viewControllers {
             newViewControllers.removeLast()
@@ -1281,8 +1190,8 @@ extension DiffContainerViewController: DiffToolbarViewDelegate {
 
     func tappedUndo() {
         
-        guard wkProject != nil else {
-            assertionFailure("WKProject must be populated before attempting undo call.")
+        guard wmfProject != nil else {
+            assertionFailure("WMFProject must be populated before attempting undo call.")
             return
         }
 
@@ -1329,20 +1238,19 @@ extension DiffContainerViewController: DiffToolbarViewDelegate {
     }
     
     private func performUndo() {
-        guard let wkProject = wkProject,
+        guard let wmfProject = wmfProject,
               let title = articleTitle,
               let revisionID = toModelRevisionID,
               let username = toModel?.user,
               let summary = undoAlertSummaryTextField?.text else {
             return
         }
-        fakeProgressController.start()
 
         if let pageURL = self.fetchPageURL() {
             EditAttemptFunnel.shared.logSaveAttempt(pageURL: pageURL)
         }
         
-        WKWatchlistDataController().undo(title: title, revisionID: UInt(revisionID), summary: summary, username: username, editSummaryTag: .diffUndo, project: wkProject) { [weak self] result in
+        WMFWatchlistDataController().undo(title: title, revisionID: UInt(revisionID), summary: summary, username: username, project: wmfProject) { [weak self] result in
             DispatchQueue.main.async {
                 self?.completeRollbackOrUndo(result: result, isRollback: false)
             }
@@ -1375,26 +1283,24 @@ extension DiffContainerViewController: DiffToolbarViewDelegate {
     }
     
     private func performRollback() {
-        guard let wkProject = wkProject,
+        guard let wmfProject = wmfProject,
               let title = articleTitle,
               let username = toModel?.user else {
             return
         }
 
-        fakeProgressController.start()
         if let pageURL = self.fetchPageURL() {
             EditAttemptFunnel.shared.logSaveAttempt(pageURL: pageURL)
         }
 
-        WKWatchlistDataController().rollback(title: title, project: wkProject, username: username, editSummaryTag: .diffRollback) { [weak self] result in
+        WMFWatchlistDataController().rollback(title: title, project: wmfProject, username: username) { [weak self] result in
             DispatchQueue.main.async {
                 self?.completeRollbackOrUndo(result: result, isRollback: true)
             }
         }
     }
     
-    private func completeRollbackOrUndo(result: Result<WKUndoOrRollbackResult, Error>, isRollback: Bool) {
-        fakeProgressController.stop()
+    private func completeRollbackOrUndo(result: Result<WMFUndoOrRollbackResult, Error>, isRollback: Bool) {
         
         switch result {
         case .success(let result):
@@ -1454,7 +1360,7 @@ extension DiffContainerViewController: DiffToolbarViewDelegate {
                 }
             }
             
-            guard let dataControllerError = error as? WKData.WKDataControllerError else {
+            guard let dataControllerError = error as? WMFData.WMFDataControllerError else {
                 fallback(error)
                 return
             }
@@ -1528,16 +1434,4 @@ extension DiffContainerViewController: WatchlistControllerDelegate {
     func didSuccessfullyUnwatch(_ controller: WatchlistController) {
         diffToolbarView?.updateMoreButton(needsWatchButton: true, needsUnwatchHalfButton: false, needsUnwatchFullButton: false, needsArticleEditHistoryButton: true)
     }
-}
-
-extension DiffContainerViewController: DiffHeaderTitleViewTapDelegate {
-
-    func userDidTapTitleLabel() {
-        guard let navigationURL = fetchPageURL() else {
-            return
-        }
-
-        navigate(to: navigationURL)
-    }
-
 }

@@ -1,4 +1,4 @@
-import UIKit
+import WMFComponents
 
 open class ArticleCollectionViewCell: CollectionViewCell, SwipeableCell, BatchEditableCell {
     public let titleLabel = UILabel()
@@ -14,13 +14,15 @@ open class ArticleCollectionViewCell: CollectionViewCell, SwipeableCell, BatchEd
 
     private var _titleHTML: String? = nil
     private var _titleBoldedString: String? = nil
-    
+
+    public var theme: Theme = Theme.standard
+
     private func updateTitleLabel() {
         if let titleHTML = _titleHTML {
             let attributedTitle = titleHTML.byAttributingHTML(with: titleTextStyle, matching: traitCollection, boldingMatchesOf: _titleBoldedString)
             titleLabel.attributedText = attributedTitle
         } else {
-            let titleFont = UIFont.wmf_font(titleTextStyle, compatibleWithTraitCollection: traitCollection)
+            let titleFont = WMFFont.for(.callout, compatibleWith: traitCollection)
             titleLabel.font = titleFont
         }
     }
@@ -52,7 +54,7 @@ open class ArticleCollectionViewCell: CollectionViewCell, SwipeableCell, BatchEd
     }
 
     open override func setup() {
-        titleTextStyle = .georgiaTitle3
+        updateStyles()
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
         statusView.clipsToBounds = true
@@ -62,7 +64,6 @@ open class ArticleCollectionViewCell: CollectionViewCell, SwipeableCell, BatchEd
         titleLabel.isOpaque = true
         descriptionLabel.isOpaque = true
         imageView.isOpaque = true
-      
         
         contentView.addSubview(alertButton)
         alertButton.addTarget(self, action: #selector(alertButtonTapped), for: .touchUpInside)
@@ -84,7 +85,7 @@ open class ArticleCollectionViewCell: CollectionViewCell, SwipeableCell, BatchEd
         super.reset()
         _titleHTML = nil
         _titleBoldedString = nil
-        titleTextStyle = .georgiaTitle3
+        updateStyles()
         descriptionTextStyle  = .subheadline
         extractTextStyle  = .subheadline
         saveButtonTextStyle  = .mediumFootnote
@@ -99,6 +100,10 @@ open class ArticleCollectionViewCell: CollectionViewCell, SwipeableCell, BatchEd
         isAlertButtonHidden = true
         isStatusViewHidden = true
         updateFonts(with: traitCollection)
+    }
+    
+    open func updateStyles() {
+        styles =  HtmlUtils.Styles(font: WMFFont.for(.georgiaTitle3, compatibleWith: traitCollection), boldFont: WMFFont.for(.boldGeorgiaTitle3, compatibleWith: traitCollection), italicsFont: WMFFont.for(.italicGeorgiaTitle3, compatibleWith: traitCollection), boldItalicsFont: WMFFont.for(.boldItalicGeorgiaTitle3, compatibleWith: traitCollection), color: theme.colors.primaryText, linkColor: theme.colors.link, lineSpacing: 1)
     }
 
     override open func updateBackgroundColorOfLabels() {
@@ -204,12 +209,12 @@ open class ArticleCollectionViewCell: CollectionViewCell, SwipeableCell, BatchEd
     
     // MARK: - View configuration
     // These properties can mutate with each use of the cell. They should be reset by the `reset` function. Call setsNeedLayout after adjusting any of these properties
-    
-    public var titleTextStyle: DynamicTextStyle!
-    public var descriptionTextStyle: DynamicTextStyle!
-    public var extractTextStyle: DynamicTextStyle!
-    public var saveButtonTextStyle: DynamicTextStyle!
-    
+    public var styles: HtmlUtils.Styles!
+    public var boldFont: WMFFont!
+    public var descriptionTextStyle: WMFFont!
+    public var extractTextStyle: WMFFont!
+    public var saveButtonTextStyle: WMFFont!
+
     public var imageViewDimension: CGFloat = 0 // used as height on full width cell, width & height on right aligned
     public var spacing: CGFloat = 3
 
@@ -219,16 +224,15 @@ open class ArticleCollectionViewCell: CollectionViewCell, SwipeableCell, BatchEd
             setNeedsLayout()
         }
     }
-    
 
     open override func updateFonts(with traitCollection: UITraitCollection) {
         super.updateFonts(with: traitCollection)
 
         updateTitleLabel()
         
-        descriptionLabel.font = UIFont.wmf_font(descriptionTextStyle, compatibleWithTraitCollection: traitCollection)
-        extractLabel?.font = UIFont.wmf_font(extractTextStyle, compatibleWithTraitCollection: traitCollection)
-        alertButton.titleLabel?.font = UIFont.wmf_font(.semiboldCaption2, compatibleWithTraitCollection: traitCollection)
+        descriptionLabel.font = WMFFont.for(descriptionTextStyle, compatibleWith: traitCollection)
+        extractLabel?.font = WMFFont.for(extractTextStyle, compatibleWith: traitCollection)
+        alertButton.titleLabel?.font = WMFFont.for(.boldCaption1, compatibleWith: traitCollection)
     }
     
     // MARK: - Semantic content

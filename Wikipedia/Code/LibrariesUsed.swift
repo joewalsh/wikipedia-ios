@@ -1,3 +1,4 @@
+import WMFComponents
 import WMF
 
 public struct LibraryUsed {
@@ -6,7 +7,7 @@ public struct LibraryUsed {
     let licenseText:String
 }
 
-class LibrariesUsedViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
+class LibrariesUsedViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, WMFNavigationBarConfiguring {
     var libraries:[LibraryUsed] = []
     @IBOutlet weak var tableView: UITableView!
     
@@ -28,8 +29,7 @@ class LibrariesUsedViewController: UIViewController, UITableViewDelegate, UITabl
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named:"close"), style: .plain, target:self, action:#selector(closeButtonPushed(_:)))
-        navigationItem.leftBarButtonItem?.accessibilityLabel = CommonStrings.closeButtonAccessibilityLabel
+        configureNavigationBar()
     }
     
     lazy private var tableHeaderView: UIView = {
@@ -38,7 +38,7 @@ class LibrariesUsedViewController: UIViewController, UITableViewDelegate, UITabl
         let labelFrame = headerView.frame.insetBy(dx: 10, dy: 10)
         let label = UILabel.init(frame: labelFrame)
         label.adjustsFontForContentSizeCategory = true
-        label.font = UIFont.preferredFont(forTextStyle: .footnote)
+        label.font = WMFFont.for(.footnote)
         label.textColor = self.theme.colors.primaryText
         label.textAlignment = .center
         label.numberOfLines = 0
@@ -53,15 +53,13 @@ class LibrariesUsedViewController: UIViewController, UITableViewDelegate, UITabl
         super.viewDidLoad()
         
         self.apply(theme: self.theme)
-        view.backgroundColor = .gray400
+        view.backgroundColor = WMFColor.gray400
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: LibrariesUsedViewController.cellReuseIdentifier)
         tableView.estimatedRowHeight = 41
         tableView.rowHeight = UITableView.automaticDimension
         tableView.tableHeaderView = tableHeaderView
         tableView.semanticContentAttribute = .forceLeftToRight
         navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target:nil, action:nil)
-        
-        title = WMFLocalizedString("about-libraries", value:"Libraries used", comment:"Header text for libraries section (as in a collection of subprograms used to develop software) of the about page. Is not capitalised for aesthetic reasons, but could be capitalised in translations.")
         
         let fileName = LibrariesUsedViewController.dataFileName
         guard
@@ -71,6 +69,14 @@ class LibrariesUsedViewController: UIViewController, UITableViewDelegate, UITabl
             return
         }
         libraries = librariesUsed(from: plistPath)
+    }
+    
+    private func configureNavigationBar() {
+        
+        let titleConfig = WMFNavigationBarTitleConfig(title: WMFLocalizedString("about-libraries", value:"Libraries used", comment:"Header text for libraries section (as in a collection of subprograms used to develop software) of the about page. Is not capitalised for aesthetic reasons, but could be capitalised in translations."), customView: nil, alignment: .centerCompact)
+        let closeConfig = WMFNavigationBarCloseButtonConfig(text: CommonStrings.doneTitle, target: self, action: #selector(closeButtonPushed(_:)), alignment: .trailing)
+        
+        configureNavigationBar(titleConfig: titleConfig, closeButtonConfig: closeConfig, profileButtonConfig: nil, searchBarConfig: nil, hideNavigationBarOnScroll: false)
     }
     
     private func librariesUsed(from plistPath: String) -> [LibraryUsed] {

@@ -48,13 +48,11 @@
 "main-menu-about" = "Di derbarê sepanê de";
 "main-menu-account-login" = "Têkeve";
 "main-menu-account-logout" = "Derkeve";
-"main-menu-account-logout-cancel" = "Betal bike";
 "main-menu-account-title-logged-in" = "Têketî wek $1";
 "main-menu-nearby" = "Yên nêzîk";
 "main-menu-privacy-policy" = "Siyaseta taybetîtiyê";
 "main-menu-terms-of-use" = "Mercên Bikaranînê";
 "main-menu-title" = "Bêhtir";
-"menu-cancel-accessibility-label" = "Betal bike";
 "navbar-title-mode-edit-wikitext-preview" = "Pêşdîtin";
 "nearby-distance-label-feet" = "$1 fît";
 "nearby-distance-label-km" = "$1 km";

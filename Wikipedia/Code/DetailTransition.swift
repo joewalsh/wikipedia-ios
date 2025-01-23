@@ -2,6 +2,7 @@ import UIKit
 
 protocol DetailTransitionSourceProviding {
     var detailTransitionSourceRect: CGRect? { get }
+    var tabBarSnapshotImage: UIImage? { get }
 }
 
 @objc(WMFImageScaleTransitionProviding)
@@ -15,13 +16,13 @@ protocol ImageScaleTransitionProviding {
 
 class DetailTransition: NSObject, UIViewControllerAnimatedTransitioning {
     
-    let detailSourceViewController: DetailTransitionSourceProviding & ViewController
+    let detailSourceViewController: DetailTransitionSourceProviding & ThemeableViewController
     
     var theme: Theme {
         return detailSourceViewController.theme
     }
     
-    required init(detailSourceViewController: DetailTransitionSourceProviding & ViewController, incomingImageScaleTransitionProvider: ImageScaleTransitionProviding?, outgoingImageScaleTransitionProvider: ImageScaleTransitionProviding?) {
+    required init(detailSourceViewController: DetailTransitionSourceProviding & ThemeableViewController, incomingImageScaleTransitionProvider: ImageScaleTransitionProviding?, outgoingImageScaleTransitionProvider: ImageScaleTransitionProviding?) {
         self.detailSourceViewController = detailSourceViewController
         incomingImageScaleTransitionProvider?.prepareForIncomingImageScaleTransition?()
         outgoingImageScaleTransitionProvider?.prepareForOutgoingImageScaleTransition?()
@@ -36,21 +37,21 @@ class DetailTransition: NSObject, UIViewControllerAnimatedTransitioning {
         guard
             let toViewController = transitionContext.viewController(forKey: .to),
             let fromViewController = transitionContext.viewController(forKey: .from)
-            else {
-                transitionContext.completeTransition(false)
-                return
+        else {
+            transitionContext.completeTransition(false)
+            return
         }
-    
+        
         let maybeToISP = (toViewController as? UITabBarController)?.selectedViewController ?? toViewController
         let maybeFromISP = (fromViewController as? UITabBarController)?.selectedViewController ?? fromViewController
-
+        
         let isEnteringDetail: Bool = maybeFromISP === detailSourceViewController
         let containerView = transitionContext.containerView
-
+        
         let toFrame = transitionContext.finalFrame(for: toViewController)
         toViewController.view.frame = toFrame
         containerView.addSubview(toViewController.view)
-
+        
         let fromImageView: UIImageView?
         let toImageView: UIImageView?
         let isImageScaleTransitioning: Bool
@@ -70,9 +71,14 @@ class DetailTransition: NSObject, UIViewControllerAnimatedTransitioning {
         
         let fromFrame = transitionContext.initialFrame(for: fromViewController)
         
+        fromViewController.navigationController?.setNavigationBarHidden(true, animated: false)
+        let fromSnapshot = maybeFromISP.view.snapshotView(afterScreenUpdates: false)
+        toViewController.navigationController?.setNavigationBarHidden(false, animated: false)
+        let toSnapshot = maybeToISP.view.snapshotView(afterScreenUpdates: true)
+        
         guard
-            let toSnapshot = maybeToISP.view.snapshotView(afterScreenUpdates: true),
-            let fromSnapshot = maybeFromISP.view.snapshotView(afterScreenUpdates: false)
+            let toSnapshot,
+            let fromSnapshot
         else {
             transitionContext.completeTransition(true)
             return
@@ -127,42 +133,22 @@ class DetailTransition: NSObject, UIViewControllerAnimatedTransitioning {
             toSnapshot.transform = transform
         }
         
-        let totalHeight = containerView.bounds.size.height
-        let tabBar = self.detailSourceViewController.tabBarController?.tabBar
-        let tabBarSnapshot: UITabBar?
-        if let tb = tabBar {
-            tabBarSnapshot = UITabBar(frame: tb.frame)
-            var selectedItem: UITabBarItem? = nil
-            let copiedItems: [UITabBarItem]? = tb.items?.compactMap { (item: UITabBarItem) -> UITabBarItem in
-                let copiedItem = UITabBarItem(title: item.title, image: item.image, selectedImage: item.selectedImage)
-                copiedItem.badgeValue = item.badgeValue
-                if item === tb.selectedItem {
-                    selectedItem = copiedItem
-                }
-                return copiedItem
-            }
-            tabBarSnapshot?.items = copiedItems
-            tabBarSnapshot?.apply(theme: theme)
-            tabBarSnapshot?.selectedItem = selectedItem
-        } else {
-            tabBarSnapshot = nil
+        // tab bar handling
+        var detailSourceTabBar: UITabBar?
+        var detailSourceTabBarSnapshotImageView: UIImageView?
+        if let tabBarSnapshotImage = detailSourceViewController.tabBarSnapshotImage,
+           let tabBar = detailSourceViewController.tabBarController?.tabBar {
+            let imageView = UIImageView(image: tabBarSnapshotImage)
+            containerView.addSubview(imageView)
+            let yValue = isEnteringDetail ? containerView.frame.height - imageView.frame.height : containerView.frame.height
+            imageView.frame = CGRect(x: 0, y: yValue, width: imageView.frame.width, height: imageView.frame.height)
+            detailSourceTabBarSnapshotImageView = imageView
+            detailSourceTabBar = tabBar
+            detailSourceTabBar?.alpha = 0
         }
         
-        let tabBarDeltaY = totalHeight - (tabBar?.frame.minY ?? totalHeight)
-        let tabBarHiddenTransform = CGAffineTransform(translationX: 0, y: tabBarDeltaY)
-        if let tb = tabBar, let tbs = tabBarSnapshot {
-            tabBar?.alpha = 0
-            tbs.alpha = 1
-            tbs.frame = CGRect(x: 0, y: containerView.frame.height - tb.frame.height, width: tb.frame.width, height: tb.frame.height) // hack, it's already positioned off screen here
-            if isEnteringDetail {
-                tbs.transform = .identity
-            } else {
-                tbs.transform = tabBarHiddenTransform
-            }
-            containerView.addSubview(tbs)
-        }
-
         let duration = self.transitionDuration(using: transitionContext)
+        
         UIView.animateKeyframes(withDuration: duration, delay: 0, options: [], animations: {
             toSnapshot.transform = .identity
             if isEnteringDetail {
@@ -172,19 +158,24 @@ class DetailTransition: NSObject, UIViewControllerAnimatedTransitioning {
                 toSnapshot.alpha = 1
                 fromSnapshot.transform = transform.inverted()
             }
-            if let tbs = tabBarSnapshot {
-                if isEnteringDetail {
-                    tbs.transform = tabBarHiddenTransform
-                } else {
-                    tbs.transform = .identity
-                }
+            
+            // tab bar handling
+            if let detailSourceTabBar, let detailSourceTabBarSnapshotImageView {
+                let oldFrame = detailSourceTabBarSnapshotImageView.frame
+                let yValue = isEnteringDetail ? containerView.frame.height : containerView.frame.height - detailSourceTabBarSnapshotImageView.frame.height
+                detailSourceTabBarSnapshotImageView.frame = CGRect(x: oldFrame.minX, y: yValue, width: oldFrame.width, height: oldFrame.height)
+                detailSourceTabBar.alpha = 0
             }
+            
+            
         }) { (finished) in
-            if let tbs = tabBarSnapshot {
-                tbs.transform = .identity
-                tbs.removeFromSuperview()
+            
+            // tab bar handling
+            if let detailSourceTabBar, let detailSourceTabBarSnapshotImageView {
+                detailSourceTabBar.alpha = 1
+                detailSourceTabBarSnapshotImageView.removeFromSuperview()
             }
-            tabBar?.alpha = 1
+            
             backgroundView.removeFromSuperview()
             toSnapshot.removeFromSuperview()
             fromSnapshot.removeFromSuperview()

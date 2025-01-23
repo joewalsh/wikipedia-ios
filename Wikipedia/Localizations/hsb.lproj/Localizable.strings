@@ -117,7 +117,6 @@
 "data-migration-status" = "Aktualizuju...";
 "description-add-title" = "Wopis přidać";
 "description-edit-for-article" = "Wopis zapiska $1";
-"description-edit-learn-more" = "Wjace zhonić";
 "description-edit-length-warning" = "$1/$2";
 "description-edit-license" = "Přez změnjenje wopisa zapiska přihłosuju $1 a doskónčnemu wozjewjenju mojich přinoškow pod licencu $2.";
 "description-edit-pencil-introduction" = "Zawod wobdźěłać";
@@ -184,7 +183,6 @@
 "edit-summary-choice-fixed-grammar" = "Gramatika skorigowana";
 "edit-summary-choice-fixed-typos" = "Pisanski zmylk skorigowany";
 "edit-summary-choice-linked-words" = "Wotkazy přidate";
-"edit-summary-learn-more-text" = "Wjace zhonić";
 "edit-watch-this-page-text" = "Tutu stronu wobkedźbować";
 "editing-welcome-be-bold-title" = "Twój hłós je wažny";
 "editing-welcome-citations-title" = "Spušćomne žórła citować";
@@ -341,7 +339,6 @@
 "main-menu-account-login" = "Přizjewić so";
 "main-menu-account-logout" = "Wotzjewić";
 "main-menu-account-logout-are-you-sure" = "Chceš so woprawdźe wotzjewić?";
-"main-menu-account-logout-cancel" = "Přetorhnyć";
 "main-menu-account-title-logged-in" = "Přizjewjeny/a jako $1";
 "main-menu-heading-legal" = "Datowy škit a wuměnjenja";
 "main-menu-nearby" = "W bliskosći";
@@ -350,7 +347,6 @@
 "main-menu-terms-of-use" = "Wužiwanske wuměnjenja";
 "main-menu-title" = "Dalše";
 "main-menu-zero-faq" = "Wikipedija Zero - Huste prašenja";
-"menu-cancel-accessibility-label" = "Přetorhnyć";
 "more-languages-tooltip-description" = "Přepytuj Wikipediju we wjace hač 300 rěčach";
 "more-languages-tooltip-title" = "Rěče přidać";
 "move-articles-to-reading-list" = "{{PLURAL:$1|$1 zapisk|$1 zapiskaj|$1 zapiski|$1 zapiskow}} do čitanskeje lisćiny přesunyć";

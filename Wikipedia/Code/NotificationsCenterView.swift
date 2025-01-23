@@ -1,4 +1,4 @@
-import UIKit
+import WMFComponents
 
 final class NotificationsCenterView: SetupView {
 
@@ -32,7 +32,6 @@ final class NotificationsCenterView: SetupView {
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         scrollView.isUserInteractionEnabled = false
         scrollView.showsVerticalScrollIndicator = false
-        scrollView.contentInsetAdjustmentBehavior = .never
         scrollView.isHidden = true
         return scrollView
     }()
@@ -58,7 +57,7 @@ final class NotificationsCenterView: SetupView {
     private lazy var emptyOverlayHeaderLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = UIFont.wmf_font(.mediumBody, compatibleWithTraitCollection: traitCollection)
+        label.font = WMFFont.for(.boldCallout, compatibleWith: traitCollection)
         label.adjustsFontForContentSizeCategory = true
         label.textAlignment = .center
         label.numberOfLines = 0
@@ -68,7 +67,7 @@ final class NotificationsCenterView: SetupView {
     private lazy var emptyOverlaySubheaderLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = UIFont.wmf_font(.subheadline, compatibleWithTraitCollection: traitCollection)
+        label.font = WMFFont.for(.subheadline, compatibleWith: traitCollection)
         label.adjustsFontForContentSizeCategory = true
         label.textAlignment = .center
         label.numberOfLines = 0
@@ -82,8 +81,8 @@ final class NotificationsCenterView: SetupView {
         super.traitCollectionDidChange(previousTraitCollection)
 
         if previousTraitCollection?.preferredContentSizeCategory != traitCollection.preferredContentSizeCategory {
-            emptyOverlayHeaderLabel.font = UIFont.wmf_font(.mediumBody, compatibleWithTraitCollection: traitCollection)
-            emptyOverlaySubheaderLabel.font = UIFont.wmf_font(.subheadline, compatibleWithTraitCollection: traitCollection)
+            emptyOverlayHeaderLabel.font = WMFFont.for(.boldCallout, compatibleWith: traitCollection)
+            emptyOverlaySubheaderLabel.font = WMFFont.for(.subheadline, compatibleWith: traitCollection)
             calculatedCellHeight = nil
         }
 

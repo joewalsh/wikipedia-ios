@@ -59,8 +59,6 @@ class ArticleAsLivingDocViewController: ColumnarCollectionViewController {
         
         self.title = headerText
         
-        setupNavigationBar()
-        
         if let viewModel = delegate?.articleAsLivingDocViewModel {
             addInitialSections(sections: viewModel.sections)
         }
@@ -266,26 +264,6 @@ class ArticleAsLivingDocViewController: ColumnarCollectionViewController {
         dataSource.apply(currentSnapshot, animatingDifferences: true)
     }
     
-    private func setupNavigationBar() {
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: WMFLocalizedString("close-button", value: "Close", comment: "Close button used in navigation bar that closes out a presented modal screen."), style: .done, target: self, action: #selector(closeButtonPressed))
-        
-        navigationMode = .forceBar
-        if let headerView = ArticleAsLivingDocHeaderView.wmf_viewFromClassNib() {
-            self.headerView = headerView
-            configureHeaderView(headerView)
-            navigationBar.isBarHidingEnabled = false
-            navigationBar.isUnderBarViewHidingEnabled = true
-            navigationBar.isUnderBarFadingEnabled = false
-            navigationBar.addUnderNavigationBarView(headerView)
-            navigationBar.needsUnderBarHack = true
-            navigationBar.underBarViewPercentHiddenForShowingTitle = 0.6
-            navigationBar.title = headerText
-            navigationBar.setNeedsLayout()
-            navigationBar.layoutIfNeeded()
-            updateScrollViewInsets()
-        }
-    }
-    
     @objc private func closeButtonPressed() {
         dismiss(animated: true, completion: nil)
     }
@@ -423,8 +401,9 @@ extension ArticleAsLivingDocViewController: ArticleAsLivingDocHorizontallyScroll
         guard let fullURL = delegate?.articleURL.resolvingRelativeWikiHref(url.absoluteString) else {
             return
         }
-        let loggedInUsername = MWKDataStore.shared().authenticationManager.loggedInUsername
-        switch Configuration.current.router.destination(for: fullURL, loggedInUsername: loggedInUsername) {
+        let authManager = MWKDataStore.shared().authenticationManager
+        let permanentUsername = authManager.authStatePermanentUsername
+        switch Configuration.current.router.destination(for: fullURL, permanentUsername: permanentUsername) {
         case .article(let articleURL): showInternalLink(url: articleURL)
         default: navigate(to: fullURL)
         }

@@ -36,7 +36,6 @@
 "main-menu-account-login" = "Rita inn";
 "main-menu-account-logout" = "Útrita";
 "main-menu-account-logout-are-you-sure" = "Ert tú vís(ur) í at tú ynskir at rita út?";
-"main-menu-account-logout-cancel" = "Angra";
 "main-menu-account-title-logged-in" = "Innritað/ur sum $1";
 "main-menu-heading-legal" = "Privatlívsvernd og treytir";
 "main-menu-nearby" = "Nærindis";
@@ -45,7 +44,6 @@
 "main-menu-terms-of-use" = "Nýtslutreytir";
 "main-menu-title" = "Meira";
 "main-menu-zero-faq" = "Wikipedia Zero Ofta settir spurningar";
-"menu-cancel-accessibility-label" = "Avbrót";
 "navbar-title-mode-edit-wikitext-preview" = "Undansýning";
 "nearby-distance-label-feet" = "$1 føtur";
 "nearby-distance-label-km" = "$1 km";

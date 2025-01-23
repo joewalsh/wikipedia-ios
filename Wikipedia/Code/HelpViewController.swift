@@ -1,6 +1,7 @@
 import MessageUI
 import CocoaLumberjackSwift
 import WMF
+import WMFComponents
 
 @objc(WMFHelpViewController)
 class HelpViewController: SinglePageWebViewController {
@@ -9,26 +10,35 @@ class HelpViewController: SinglePageWebViewController {
     static let emailSubject = "Bug:"
     let dataStore: MWKDataStore
     
+    lazy var toolbarContainerView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
+    lazy var toolbar: UIToolbar = {
+        let tb = UIToolbar()
+        tb.translatesAutoresizingMaskIntoConstraints = false
+        return tb
+    }()
+    
     @objc init?(dataStore: MWKDataStore, theme: Theme) {
         guard let faqURL = URL(string: HelpViewController.faqURLString) else {
             return nil
         }
         self.dataStore = dataStore
-        super.init(url: faqURL, theme: theme)
+        let config = SinglePageWebViewController.StandardConfig(url: faqURL, useSimpleNavigationBar: false)
+        super.init(configType: .standard(config), theme: theme)
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-    required init(url: URL, theme: Theme) {
-        fatalError("init(url:theme:) has not been implemented")
+    required init(configType: ConfigType, theme: Theme) {
+        fatalError("init(configType:theme:) has not been implemented")
     }
-
-    required init(url: URL, theme: Theme, doesUseSimpleNavigationBar: Bool = false, campaignArticleURL: URL? = nil, campaignBannerID: String? = nil) {
-        fatalError("init(url:theme:doesUseSimpleNavigationBar:campaignArticleURL:campaignBannerID:) has not been implemented")
-    }
-
+    
     lazy var sendEmailToolbarItem: UIBarButtonItem = {
         return UIBarButtonItem(title: WMFLocalizedString("button-report-a-bug", value: "Report a bug", comment: "Button text for reporting a bug"), style: .plain, target: self, action: #selector(sendEmail))
     }()
@@ -63,14 +73,36 @@ class HelpViewController: SinglePageWebViewController {
         }
         
         let leadingSpace: CGFloat = isExportingUserData ? 30 : 8
+        let item1 = UIBarButtonItem(barButtonSystemItem: .fixedSpace, target: nil, action: nil)
+        item1.width = leadingSpace
+        let flexibleSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
+        let item2 = UIBarButtonItem(barButtonSystemItem: .fixedSpace, target: nil, action: nil)
+        item2.width = 8
         
-        self.toolbar.items = [UIBarButtonItem.wmf_barButtonItem(ofFixedWidth: leadingSpace), exportItem, UIBarButtonItem.flexibleSpaceToolbar(), sendEmailToolbarItem, UIBarButtonItem.wmf_barButtonItem(ofFixedWidth: 8)]
+        self.toolbar.items = [item1, exportItem, flexibleSpace, sendEmailToolbarItem, item2]
     }
 
     private func setupToolbar() {
-        enableToolbar()
+        toolbarContainerView.addSubview(toolbar)
+        view.addSubview(toolbarContainerView)
+        
+        NSLayoutConstraint.activate([
+            toolbarContainerView.safeAreaLayoutGuide.bottomAnchor.constraint(equalTo: toolbar.bottomAnchor),
+            toolbarContainerView.leadingAnchor.constraint(equalTo: toolbar.leadingAnchor),
+            toolbarContainerView.trailingAnchor.constraint(equalTo: toolbar.trailingAnchor),
+            toolbarContainerView.topAnchor.constraint(equalTo: toolbar.topAnchor),
+            view.bottomAnchor.constraint(equalTo: toolbarContainerView.bottomAnchor),
+            view.leadingAnchor.constraint(equalTo: toolbarContainerView.leadingAnchor),
+            view.trailingAnchor.constraint(equalTo: toolbarContainerView.trailingAnchor)
+        ])
+        
         setupToolbarItems(isExportingUserData: false)
-        setToolbarHidden(false, animated: false)
+        
+        toolbarContainerView.setNeedsLayout()
+        toolbarContainerView.layoutIfNeeded()
+        
+        let oldContentInset = webView.scrollView.contentInset
+        webView.scrollView.contentInset = UIEdgeInsets(top: oldContentInset.top, left: oldContentInset.left, bottom: oldContentInset.bottom + toolbarContainerView.frame.height, right: oldContentInset.right)
     }
     
     enum UserDataExportError: Error {
@@ -101,6 +133,14 @@ class HelpViewController: SinglePageWebViewController {
         }
 
         UIApplication.shared.open(mailtoURL)
+    }
+    
+    override func apply(theme: Theme) {
+        super.apply(theme: theme)
+        
+        toolbarContainerView.backgroundColor = theme.colors.paperBackground
+        toolbar.setBackgroundImage(theme.navigationBarBackgroundImage, forToolbarPosition: .any, barMetrics: .default)
+        toolbar.isTranslucent = false
     }
 
 }
@@ -142,7 +182,7 @@ private extension HelpViewController {
     }
     
     func saveSyncedReadingListResultsToAppContainer(completion: @escaping () -> Void) {
-        guard dataStore.authenticationManager.isLoggedIn else {
+        guard dataStore.authenticationManager.authStateIsPermanent else {
             completion()
             return
         }
@@ -155,7 +195,7 @@ private extension HelpViewController {
         let dispatchQueue = DispatchQueue.global(qos: .userInitiated)
         dispatchQueue.async {
 
-            let sharedCache = SharedContainerCache<UserDataExportSyncInfo>.init(fileName: "User Data Export Sync Info")
+            let sharedCache = SharedContainerCache.init(fileName: "User Data Export Sync Info")
             
             apiController.getAllReadingLists { (serverReadingLists, _, _) in
                 dispatchQueue.async {

@@ -1,8 +1,18 @@
 import UIKit
 import WMF
+import WMFComponents
+import WMFData
+import CocoaLumberjackSwift
 
 @objc(WMFHistoryViewController)
-class HistoryViewController: ArticleFetchedResultsViewController {
+class HistoryViewController: ArticleFetchedResultsViewController, WMFNavigationBarConfiguring, WMFNavigationBarHiding {
+    
+    var topSafeAreaOverlayHeightConstraint: NSLayoutConstraint?
+    var topSafeAreaOverlayView: UIView?
+
+    override var headerStyle: ColumnarCollectionViewController.HeaderStyle {
+        return .sections
+    }
 
     override func setupFetchedResultsController(with dataStore: MWKDataStore) {
         let articleRequest = WMFArticle.fetchRequest()
@@ -13,9 +23,6 @@ class HistoryViewController: ArticleFetchedResultsViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        navigationBar.isBarHidingEnabled = false
-        navigationBar.isShadowHidingEnabled = true
-        navigationBar.displayType = .largeTitle
 
         emptyViewType = .noHistory
         
@@ -26,14 +33,15 @@ class HistoryViewController: ArticleFetchedResultsViewController {
         deleteAllCancelText = WMFLocalizedString("history-clear-cancel", value: "Cancel", comment: "Button text for cancelling delete all action {{Identical|Cancel}}")
         deleteAllText = WMFLocalizedString("history-clear-delete-all", value: "Yes, delete all", comment: "Button text for confirming delete all action")
         isDeleteAllVisible = true
+        
+        setupTopSafeAreaOverlay(scrollView: collectionView)
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         collectionViewUpdater.isGranularUpdatingEnabled = true
-
-        // Terrible hack to make back button text appropriate for iOS 14 - need to set the title on `WMFAppViewController`. For all app tabs, this is set in `viewWillAppear`.
-        (parent as? WMFAppViewController)?.navigationItem.backButtonTitle = title
+        
+        configureNavigationBar()
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -46,16 +54,91 @@ class HistoryViewController: ArticleFetchedResultsViewController {
         collectionViewUpdater.isGranularUpdatingEnabled = false
     }
     
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        
+        if #available(iOS 18, *) {
+            if UIDevice.current.userInterfaceIdiom == .pad {
+                if previousTraitCollection?.horizontalSizeClass != traitCollection.horizontalSizeClass {
+                    configureNavigationBar()
+                }
+            }
+        }
+    }
+    
+    override func viewWillTransition(to size: CGSize, with coordinator: any UIViewControllerTransitionCoordinator) {
+        super.viewWillTransition(to: size, with: coordinator)
+
+        coordinator.animate(alongsideTransition: nil) { [weak self] _ in
+            self?.calculateTopSafeAreaOverlayHeight()
+        }
+    }
+    
+    override func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        super.scrollViewDidScroll(scrollView)
+        calculateNavigationBarHiddenState(scrollView: scrollView)
+    }
+    
     override func deleteAll() {
         do {
             try dataStore.viewContext.clearReadHistory()
         } catch let error {
             showError(error)
         }
+        
+        Task {
+            do {
+                let dataController = try WMFPageViewsDataController()
+                try await dataController.deleteAllPageViews()
+
+            } catch {
+                DDLogError("Failure deleting WMFData WMFPageViews: \(error)")
+            }
+        }
     }
     
-    override var headerStyle: ColumnarCollectionViewController.HeaderStyle {
-        return .sections
+    override func delete(at indexPath: IndexPath) {
+        
+        guard let article = article(at: indexPath) else {
+            return
+        }
+        
+        super.delete(at: indexPath)
+
+        // Also delete from WMFData WMFPageViews
+        guard let title = article.url?.wmf_title,
+              let languageCode = article.url?.wmf_languageCode else {
+            return
+        }
+        
+        let variant = article.variant
+        
+        let project = WMFProject.wikipedia(WMFLanguage(languageCode: languageCode, languageVariantCode: variant))
+        
+        Task {
+            do {
+                let dataController = try WMFPageViewsDataController()
+                try await dataController.deletePageView(title: title, namespaceID: 0, project: project)
+            } catch {
+                DDLogError("Failure deleting WMFData WMFPageViews: \(error)")
+            }
+        }
+    }
+    
+    private func configureNavigationBar() {
+        
+        var titleConfig: WMFNavigationBarTitleConfig = WMFNavigationBarTitleConfig(title: CommonStrings.historyTabTitle, customView: nil, alignment: .leadingCompact)
+        extendedLayoutIncludesOpaqueBars = false
+        if #available(iOS 18, *) {
+            if UIDevice.current.userInterfaceIdiom == .pad && traitCollection.horizontalSizeClass == .regular {
+                titleConfig = WMFNavigationBarTitleConfig(title: CommonStrings.historyTabTitle, customView: nil, alignment: .leadingLarge)
+                extendedLayoutIncludesOpaqueBars = true
+            }
+        }
+        
+        let hideNavigationBarOnScroll = !isEmpty
+
+        configureNavigationBar(titleConfig: titleConfig, closeButtonConfig: nil, profileButtonConfig: nil, searchBarConfig: nil, hideNavigationBarOnScroll: hideNavigationBarOnScroll)
     }
 
     func titleForHeaderInSection(_ section: Int) -> String? {
@@ -80,6 +163,9 @@ class HistoryViewController: ArticleFetchedResultsViewController {
     override func collectionViewUpdater<T>(_ updater: CollectionViewUpdater<T>, didUpdate collectionView: UICollectionView) {
         super.collectionViewUpdater(updater, didUpdate: collectionView)
         updateVisibleHeaders()
+        
+        // if it switched to empty state, this line will disable hide nav bar on scroll
+        configureNavigationBar()
     }
 
     func updateVisibleHeaders() {
@@ -93,5 +179,11 @@ class HistoryViewController: ArticleFetchedResultsViewController {
     
     override var eventLoggingCategory: EventCategoryMEP {
         return .history
+    }
+    
+    override func apply(theme: Theme) {
+        super.apply(theme: theme)
+        
+        themeTopSafeAreaOverlay()
     }
 }

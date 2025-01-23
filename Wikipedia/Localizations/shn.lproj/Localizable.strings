@@ -115,7 +115,6 @@
 "description-add-title" = "ထႅမ်သႂ်ႇ ၶေႃႈသပ်းလႅင်း";
 // Fuzzy
 "description-edit-for-article" = "ၶေႃႈသပ်းလႅင်းႁူဝ်ၶေႃႈ တွၼ်ႈတႃႇ $1";
-"description-edit-learn-more" = "လဵပ်ႈႁဵၼ်း လိူဝ်";
 "description-edit-length-warning" = "$1 / $2";
 // Fuzzy
 "description-edit-license" = "ယွၼ်ႉလႅၵ်ႈလၢႆႈ​ ၶေႃႈသပ်းလႅင်းႁူဝ်ၶေႃႈသေလႄႈ၊ ၶႃႈႁဝ်း ၽွမ်ႉၸႂ်တင်း $1 လႄႈ တေပိုၼ်ဢွၵ်ႈ လွင်ႈၶဝ်ႈႁူမ်ႈၶႃႈၶၢတ်ႈၶၢတ်ႈ ၸွမ်းၼင်ႇ ဝႂ်ၶႂၢင်း $2။";
@@ -178,7 +177,6 @@
 "edit-summary-choice-fixed-grammar" = "လၢႆးတႅမ်ႈလိၵ်ႈ ဢၼ်မႄးဝႆႉ";
 "edit-summary-choice-fixed-typos" = "ၵၢၼ်ပေႃႉလိၵ်ႈ ဢၼ်မႄးဝႆႉ";
 "edit-summary-choice-linked-words" = "ႁဵင်းၵွင်ႉ ဢၼ်ထႅမ်သႂ်ႇဝႆႉ";
-"edit-summary-learn-more-text" = "လဵပ်ႈႁဵၼ်း လိူဝ်";
 "edit-summary-placeholder-text" = "ၸဝ်ႈၵဝ်ႇ ႁဵတ်းႁိုဝ်မႄးၵုမ်း ပွင်ႈၵႂၢမ်းမႃး?";
 // Fuzzy
 "edit-watch-list-learn-more-text" = "လဵပ်ႈႁဵၼ်း လွင်ႈသဵၼ်ႈမၢႆတႃႇတူၺ်း လိူဝ်ၼႆႉ";
@@ -393,7 +391,6 @@
 "main-menu-account-login" = "လွၵ်ႉဢိၼ်ႇ";
 "main-menu-account-logout" = "လွၵ်ႉဢွၵ်ႉ";
 "main-menu-account-logout-are-you-sure" = "ၸဝ်ႈၵဝ်ႇတေလွၵ်ႉဢွၵ်ႉၼႆ လပ်ႉလွင်းယဝ်ႉႁႃႉ?";
-"main-menu-account-logout-cancel" = "ယုၵ်ႉလိူၵ်ႈ";
 "main-menu-account-title-logged-in" = "ၶဝ်ႈလွၵ်ႉဢိၼ်ႇဝႆႉၼင်ႇ $1";
 "main-menu-heading-legal" = "လွင်ႈႁူမ်ႇလူမ်ႈသုၼ်ႇတူဝ်လႄႈ ၶေႃႈမၼ်ႈၸႂ်";
 "main-menu-nearby" = "ႁိမ်းႁွမ်း";
@@ -402,7 +399,6 @@
 "main-menu-terms-of-use" = "ၶေႃႈၽၢင်ႉလွင်ႈၸႂ်ႉတိုဝ်း";
 "main-menu-title" = "ၼမ်လိူဝ်";
 "main-menu-zero-faq" = "ၶေႃႈၵႆႉထၢမ်တွပ်ႇ တႃႇ ဝီႇၶီႇၽီးတီးယႃး သုၼ်";
-"menu-cancel-accessibility-label" = "ဢမ်ႇႁဵတ်း";
 "more-languages-tooltip-description" = "ၶူၼ်ႉႁႃ ဝီႇၶီႇၽီးတီးယႃး ၼႂ်းၽႃႇသႃႇၵႂၢမ်း 300 လိူဝ်";
 "more-languages-tooltip-title" = "ထႅမ်သႂ်ႇ ၽႃႇသႃႇ";
 "move-articles-to-reading-list" = "ၶၢႆႉ {{PLURAL:$1|$1 ပွင်ႈၵႂၢမ်း|$1 ပွင်ႈၵႂၢမ်း}} ၸူး သဵၼ်ႈမၢႆလူ";

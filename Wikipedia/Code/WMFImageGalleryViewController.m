@@ -5,6 +5,7 @@
 #import "WMFImageGalleryDetailOverlayView.h"
 @import CoreServices;
 @import UniformTypeIdentifiers;
+@import WMFComponents;
 
 // SINGLETONTODO - this whole file, find [MWKDataStore shared]
 
@@ -21,9 +22,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 @end
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wincomplete-implementation"
-
 @interface NYTPhotosViewController (WMFExposure)
 
 - (NYTPhotoViewController *)newPhotoViewControllerForPhoto:(id<NYTPhoto>)photo;
@@ -35,10 +33,6 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong, readonly) NSArray<id<NYTPhoto>> *photos;
 
 @property (nonatomic, readonly) id<WMFExposedDataSource> dataSource;
-
-- (NYTPhotoViewController *)currentPhotoViewController;
-
-- (UIImageView *)currentImageView;
 
 @property (nonatomic, strong) WMFTheme *theme;
 
@@ -110,9 +104,6 @@ NS_ASSUME_NONNULL_BEGIN
          */
         NSParameterAssert(self.dataSource);
         NSParameterAssert(self.photos);
-        NSAssert([self respondsToSelector:@selector(updateOverlayInformation)], @"NYTPhoto implementation changed!");
-        NSAssert([self respondsToSelector:@selector(currentPhotoViewController)], @"NYTPhoto implementation changed!");
-        NSAssert([self respondsToSelector:@selector(currentImageView)], @"NYTPhoto implementation changed!");
         NSAssert([self respondsToSelector:@selector(newPhotoViewControllerForPhoto:)], @"NYTPhoto implementation changed!");
 
         self.theme = theme;
@@ -135,7 +126,7 @@ NS_ASSUME_NONNULL_BEGIN
         share.tintColor = [UIColor whiteColor];
         self.overlayView.rightBarButtonItem = share;
 
-        UIBarButtonItem *close = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"close"] style:UIBarButtonItemStylePlain target:self action:@selector(didTapCloseButton)];
+        UIBarButtonItem *close = [[UIBarButtonItem alloc] initWithImage:[WMFImageGalleryViewController closeButtonImage] style:UIBarButtonItemStylePlain target:self action:@selector(didTapCloseButton)];
         close.tintColor = [UIColor whiteColor];
         close.accessibilityLabel = [WMFCommonStrings closeButtonAccessibilityLabel];
         self.overlayView.leftBarButtonItem = close;
@@ -144,14 +135,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (UIInterfaceOrientationMask)supportedInterfaceOrientations {
     return UIInterfaceOrientationMaskAll;
-}
-
-- (BOOL)shouldAutorotate {
-    return YES;
-}
-
-- (UIImageView *)currentImageView {
-    return [self currentPhotoViewController].scalingImageView.imageView;
 }
 
 - (NSArray<id<NYTPhoto>> *)photos {
@@ -206,7 +189,11 @@ NS_ASSUME_NONNULL_BEGIN
 #pragma mark - Actions
 
 - (void)didTapCloseButton {
-    [self dismissViewControllerAnimated:YES completion:NULL];
+    [self dismissViewControllerAnimated:YES completion:^{
+        if ([self.dismissDelegate respondsToSelector:@selector(galleryDidDismiss:)]) {
+            [self.dismissDelegate galleryDidDismiss:self];
+        }
+    }];
 }
 
 - (void)didTapShareButton {
@@ -273,13 +260,22 @@ NS_ASSUME_NONNULL_BEGIN
             [self wmf_navigateToURL:imageInfo.filePageURL.wmf_urlByPrependingSchemeIfSchemeless];
         } else {
             // There should always be a file page URL, but log an error anyway
-            DDLogError(@"No license URL or file page URL for %@", imageInfo);
+            DDLogWarn(@"No license URL or file page URL for %@", imageInfo);
         }
     };
     caption.infoTapCallback = ^{
         @strongify(self);
         if (imageInfo.filePageURL) {
-            [self wmf_navigateToURL:imageInfo.filePageURL.wmf_urlByPrependingSchemeIfSchemeless];
+            
+            // First dismiss self
+            [self dismissViewControllerAnimated:YES completion:^{
+                if ([self.dismissDelegate respondsToSelector:@selector(galleryDidTapInfoButton:)]) {
+                    [self.dismissDelegate galleryDidTapInfoButton:self];
+                }
+                
+                // then navigate to in-app web view
+                [self wmf_navigateToURL:imageInfo.filePageURL.wmf_urlByPrependingSchemeIfSchemeless];
+            }];
         }
     };
     @weakify(caption);
@@ -316,6 +312,12 @@ NS_ASSUME_NONNULL_BEGIN
     detailOverlayView.maximumDescriptionHeight = size.height;
 }
 
+- (void)photosViewControllerDidDismiss:(NYTPhotosViewController *)photosViewController {
+    if ([self.dismissDelegate respondsToSelector:@selector(galleryDidDismiss:)]) {
+        [self.dismissDelegate galleryDidDismiss:self];
+    }
+}
+
 #pragma mark - WMFThemeable
 
 - (void)applyTheme:(WMFTheme *)theme {
@@ -323,8 +325,6 @@ NS_ASSUME_NONNULL_BEGIN
 }
 
 @end
-
-#pragma clang diagnostic pop
 
 @interface WMFPOTDPhoto : WMFBasePhoto <WMFPhoto>
 

@@ -150,7 +150,6 @@
 "data-migration-status" = "កំពុងបន្ទាន់សម័យ...";
 "description-add-title" = "បន្ថែមចំណារពន្យល់";
 "description-edit-for-article" = "ចំណារពន្យល់អំពីអត្ថបទសម្រាប់ $1";
-"description-edit-learn-more" = "ស្វែងយល់បន្ថែម";
 "description-edit-length-warning" = "$1 / $2";
 "description-edit-pencil-introduction" = "កែប្រែសេចក្ដីផ្ដើម";
 "description-edit-pencil-title" = "កែប្រែការពិពណ៌នាអត្ថបទ";
@@ -227,7 +226,6 @@
 "edit-summary-choice-fixed-grammar" = "បានកែតម្រូវវេយ្យាករណ៍";
 "edit-summary-choice-fixed-typos" = "បានកែតម្រូវកំហុសអក្ខរាវិរុទ្ធ";
 "edit-summary-choice-linked-words" = "បានបន្ថែមតំណភ្ជាប់";
-"edit-summary-learn-more-text" = "ស្វែងយល់បន្ថែម";
 "edit-summary-placeholder-text" = "តើអ្នកបានកែលម្អអត្ថបទនេះដោយរបៀបណា?";
 // Fuzzy
 "edit-watch-list-learn-more-text" = "ស្វែងយល់បន្ថែមអំពីបញ្ជីតាមដាន";
@@ -443,7 +441,6 @@
 "main-menu-account-login" = "កត់ឈ្មោះចូល";
 "main-menu-account-logout" = "កត់ឈ្មោះចេញ";
 "main-menu-account-logout-are-you-sure" = "តើអ្នកពិតជាងចង់កត់ឈ្មោះចេញមែនទេ?";
-"main-menu-account-logout-cancel" = "បោះបង់";
 "main-menu-account-title-logged-in" = "កត់ឈ្មោះចូលជា $1";
 "main-menu-heading-legal" = "ភាពឯកជននិងលក្ខខណ្ឌប្រើប្រាស់";
 "main-menu-nearby" = "ជិតខាង";
@@ -452,7 +449,6 @@
 "main-menu-terms-of-use" = "លក្ខខណ្ឌប្រើប្រាស់";
 "main-menu-title" = "បន្ថែមទៀត";
 "main-menu-zero-faq" = "សំនួរញឹកញាប់សម្រាប់វិគីភីឌាសូន្យ";
-"menu-cancel-accessibility-label" = "បោះបង់";
 "more-languages-tooltip-description" = "ស្វែងរកក្នុងវិគីភីឌាជាភាសាជាង៣០០ភាសា";
 "more-languages-tooltip-title" = "បន្ថែមភាសា";
 "move-articles-to-reading-list" = "ប្ដូរទីតាំង{{PLURAL:$1|អត្ថបទចំនួន$1|អត្ថបទចំនួន$1}}ទៅក្នុងបញ្ជីអំណាន";

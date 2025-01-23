@@ -1,10 +1,10 @@
+import WMFComponents
 import SwiftUI
 import WMF
 
 struct TalkPageArchivesView: View {
     
     @EnvironmentObject var observableTheme: ObservableTheme
-    @EnvironmentObject var data: ShiftingTopViewsData
     
     // This will trigger body() again upon dynamic type size change, so that font sizes can scale up
     @Environment(\.sizeCategory) var sizeCategory: ContentSizeCategory
@@ -27,7 +27,7 @@ struct TalkPageArchivesView: View {
     }
     
     var body: some View {
-        ShiftingScrollView {
+        ScrollView {
             
             if items.isEmpty && didFetchFirstPage && firstPageFetchError == nil {
                 TalkPageArchivesInfoText(info: WMFLocalizedString("talk-pages-archives-empty-title", value: "No archived pages found.", comment: "Text displayed when no talk page archive pages were found."))
@@ -64,14 +64,11 @@ struct TalkPageArchivesView: View {
             }
 
             firstPageFetchTask = Task(priority: .userInitiated) {
-                data.isLoading = true
                 do {
                     let response = try await fetcher.fetchFirstPage()
-                    data.isLoading = false
                     didFetchFirstPage = true
                     self.items = processResponse(response)
                 } catch {
-                    data.isLoading = false
                     didFetchFirstPage = true
                     self.firstPageFetchError = error
                     let userInfo = [Notification.Name.showErrorBannerNSErrorKey: error]
@@ -90,7 +87,7 @@ struct TalkPageArchivesView: View {
     // MARK: Private Helpers
     
     private var itemFont: UIFont {
-        return UIFont.wmf_scaledSystemFont(forTextStyle: .callout, weight: .semibold, size: 16)
+        return WMFFont.for(.boldCallout)
     }
     
     private func itemIsLast(_ item: TalkPageArchivesItem) -> Bool {
@@ -120,6 +117,6 @@ private struct TalkPageArchivesInfoText: View {
     }
     
     private var infoFont: UIFont {
-        return UIFont.wmf_scaledSystemFont(forTextStyle: .body, weight: .regular, size: 17)
+        return WMFFont.for(.callout)
     }
 }

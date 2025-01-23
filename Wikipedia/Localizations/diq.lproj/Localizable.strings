@@ -1,4 +1,4 @@
-// Messages for Zazaki (Zazaki)
+// Messages for Dimli (Zazaki)
 // Exported from translatewiki.net
 // Author: 1917 Ekim Devrimi
 // Author: Asmen
@@ -57,7 +57,6 @@
 "edit-minor-learn-more-text" = "Heqa vurnayışanê qıcan de tayêna bımuse";
 "edit-minor-text" = "No yew vırnayışo werdiyo";
 "edit-published" = "Vurnayış qeyd bi";
-"edit-summary-learn-more-text" = "Tayêna bımuse";
 "edit-watch-this-page-text" = "Ena pele seyr ke";
 // Fuzzy
 "empty-insert-media-title" = "Yew dosya weçine";
@@ -95,13 +94,11 @@
 "languages-title" = "Zıwani bıvurne";
 "main-menu-account-login" = "Cı kewe";
 "main-menu-account-logout" = "Bıveciye";
-"main-menu-account-logout-cancel" = "Bıtexelne";
 "main-menu-account-title-logged-in" = "Şıma zey $1 kewtê cı.";
 "main-menu-heading-legal" = "Nımnayışi u şerti";
 "main-menu-nearby" = "Nezdıra";
 "main-menu-terms-of-use" = "Şertê gurenayışi";
 "main-menu-title" = "Zêde";
-"menu-cancel-accessibility-label" = "Bıtexelne";
 "navbar-title-mode-edit-wikitext-preview" = "Verqayt";
 "nearby-distance-label-feet" = "$1 fit";
 "nearby-distance-label-km" = "$1 km";

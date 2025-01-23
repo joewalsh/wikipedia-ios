@@ -121,7 +121,6 @@
 "description-add-title" = "Aldoni priskribon";
 // Fuzzy
 "description-edit-for-article" = "Titola priskribo por $1";
-"description-edit-learn-more" = "Ekscii pli";
 "description-edit-length-warning" = "$1 / $2";
 // Fuzzy
 "description-edit-license" = "Ŝanĝante la titolan priskribon, mi konsentas kun la $1 kaj nenuligeble eldonas miajn kontribuojn laŭ la permesilo $2.";
@@ -177,7 +176,6 @@
 "edit-summary-choice-fixed-grammar" = "Ĝustigis gramatikon";
 "edit-summary-choice-fixed-typos" = "Ĝustigis ortografion";
 "edit-summary-choice-linked-words" = "Aldonis ligilojn";
-"edit-summary-learn-more-text" = "Lerni plu";
 "edit-summary-placeholder-text" = "Kiel ĝi plibonigis la artikolon?";
 // Fuzzy
 "edit-watch-list-learn-more-text" = "Lerni pli pri atentaro";
@@ -392,7 +390,6 @@
 "main-menu-account-login" = "Ensaluti";
 "main-menu-account-logout" = "Elsaluti";
 "main-menu-account-logout-are-you-sure" = "Ĉu vi certas, ke vi volas elsaluti?";
-"main-menu-account-logout-cancel" = "Nuligi";
 "main-menu-account-title-logged-in" = "Ensalutinta kiel $1";
 "main-menu-heading-legal" = "Privateco kaj uzkondiĉoj";
 "main-menu-nearby" = "Ĉirkaŭe";
@@ -401,7 +398,6 @@
 "main-menu-terms-of-use" = "Uzkondiĉoj";
 "main-menu-title" = "Pli";
 "main-menu-zero-faq" = "Oftaj demandoj pri Vikipedio Zero";
-"menu-cancel-accessibility-label" = "Nuligi";
 // Fuzzy
 "more-languages-tooltip-description" = "Serĉi tra Vikipedio en preskaŭ 300 lingvoj";
 "more-languages-tooltip-title" = "Aldoni lingvojn";

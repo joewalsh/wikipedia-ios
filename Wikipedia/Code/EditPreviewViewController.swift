@@ -1,11 +1,18 @@
 import UIKit
 import WMF
+import WMFComponents
 
 protocol EditPreviewViewControllerDelegate: NSObjectProtocol {
-    func editPreviewViewControllerDidTapNext(_ editPreviewViewController: EditPreviewViewController)
+    func editPreviewViewControllerDidTapNext(pageURL: URL, sectionID: Int?, editPreviewViewController: EditPreviewViewController)
 }
 
-class EditPreviewViewController: ViewController, WMFPreviewAnchorTapAlertDelegate, InternalLinkPreviewing {
+protocol EditPreviewViewControllerLoggingDelegate: AnyObject {
+    func logEditPreviewDidAppear()
+    func logEditPreviewDidTapBack()
+    func logEditPreviewDidTapNext()
+}
+
+class EditPreviewViewController: ThemeableViewController, WMFPreviewDelegate, InternalLinkPreviewing, WMFNavigationBarConfiguring {
     var sectionID: Int?
     var pageURL: URL
     var languageCode: String?
@@ -14,6 +21,7 @@ class EditPreviewViewController: ViewController, WMFPreviewAnchorTapAlertDelegat
     var needsSimplifiedFormatToast: Bool = false
     
     weak var delegate: EditPreviewViewControllerDelegate?
+    weak var loggingDelegate: EditPreviewViewControllerLoggingDelegate?
     
     lazy var messagingController: ArticleWebMessagingController = {
         let controller = ArticleWebMessagingController()
@@ -39,9 +47,7 @@ class EditPreviewViewController: ViewController, WMFPreviewAnchorTapAlertDelegat
     init(pageURL: URL) {
         self.pageURL = pageURL
         self.previewWebViewContainer = PreviewWebViewContainer()
-        super.init()
-
-        webView.scrollView.delegate = self
+        super.init(nibName: nil, bundle: nil)
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -55,6 +61,10 @@ class EditPreviewViewController: ViewController, WMFPreviewAnchorTapAlertDelegat
         } else {
             showInternalLink(url: url)
         }
+    }
+    
+    func previewWebViewContainer(_ previewWebViewContainer: PreviewWebViewContainer, didFailWithError error: any Error) {
+        showError(error)
     }
 
     func showExternalLinkInAlert(link: String) {
@@ -72,13 +82,10 @@ class EditPreviewViewController: ViewController, WMFPreviewAnchorTapAlertDelegat
         alertController.addAction(UIAlertAction(title: CommonStrings.okTitle, style: .default, handler: nil))
         present(alertController, animated: true)
     }
-
-    @objc func goBack() {
-        navigationController?.popViewController(animated: true)
-    }
     
     @objc func goForward() {
-        delegate?.editPreviewViewControllerDidTapNext(self)
+        loggingDelegate?.logEditPreviewDidTapNext()
+        delegate?.editPreviewViewControllerDidTapNext(pageURL: pageURL, sectionID: sectionID, editPreviewViewController: self)
     }
 
     override func viewDidLoad() {
@@ -86,16 +93,7 @@ class EditPreviewViewController: ViewController, WMFPreviewAnchorTapAlertDelegat
 
         view.addSubview(previewWebViewContainer)
         view.wmf_addConstraintsToEdgesOfView(previewWebViewContainer)
-        previewWebViewContainer.previewAnchorTapAlertDelegate = self
-        
-        navigationItem.title = WMFLocalizedString("navbar-title-mode-edit-wikitext-preview", value: "Preview", comment: "Header text shown when wikitext changes are being previewed. {{Identical|Preview}}")
-                
-        navigationItem.leftBarButtonItem = UIBarButtonItem.wmf_buttonType(.caretLeft, target: self, action: #selector(self.goBack))
-        
-        if needsNextButton {
-            navigationItem.rightBarButtonItem = UIBarButtonItem(title: CommonStrings.nextTitle, style: .done, target: self, action: #selector(self.goForward))
-            navigationItem.rightBarButtonItem?.tintColor = theme.colors.link
-        }
+        previewWebViewContainer.delegate = self
         
         apply(theme: theme)
         previewWebViewContainer.webView.uiDelegate = self
@@ -104,15 +102,37 @@ class EditPreviewViewController: ViewController, WMFPreviewAnchorTapAlertDelegat
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         loadPreviewIfNecessary()
+        
+        configureNavigationBar()
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         WMFAlertManager.sharedInstance.dismissAlert()
         super.viewWillDisappear(animated)
+        
+        if isMovingFromParent {
+            // Tapped Back button in Navigation Bar
+            loggingDelegate?.logEditPreviewDidTapBack()
+        }
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        loggingDelegate?.logEditPreviewDidAppear()
     }
     
     deinit {
         messagingController.removeScriptMessageHandler()
+    }
+    
+    private func configureNavigationBar() {
+        let titleConfig = WMFNavigationBarTitleConfig(title: WMFLocalizedString("navbar-title-mode-edit-wikitext-preview", value: "Preview", comment: "Header text shown when wikitext changes are being previewed. {{Identical|Preview}}"), customView: nil, alignment: .centerCompact)
+        
+        configureNavigationBar(titleConfig: titleConfig, closeButtonConfig: nil, profileButtonConfig: nil, searchBarConfig: nil, hideNavigationBarOnScroll: false)
+        
+        if needsNextButton {
+            navigationItem.rightBarButtonItem = UIBarButtonItem(title: CommonStrings.nextTitle, style: .done, target: self, action: #selector(self.goForward))
+        }
     }
     
     private var hasPreviewed = false

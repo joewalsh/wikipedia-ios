@@ -2,8 +2,8 @@
 #import <WMF/WikipediaAppUtils.h>
 #import <WMF/NSString+WMFExtras.h>
 #import <WMF/NSBundle+WMFInfoUtils.h>
-#import "UIBarButtonItem+WMFButtonConvenience.h"
 #import "Wikipedia-Swift.h"
+@import WMFComponents;
 
 static NSString *const kWMFAboutHTMLFile = @"about.html";
 static NSString *const kWMFAboutPlistName = @"AboutViewController";
@@ -99,9 +99,10 @@ static NSString *const kWMFContributorsKey = @"contributors";
 
 @interface AboutViewController ()
 
+@property (nonatomic, strong) WMFTheme *theme;
 @property (strong, nonatomic) WKWebView *webView;
-@property (nonatomic, strong) UIBarButtonItem *buttonX;
-@property (nonatomic, strong) UIBarButtonItem *buttonCaretLeft;
+@property (nonatomic, strong) UILabel *navigationTitleLabel;
+@property (nonatomic, assign) NSInteger titleLabelTappedCount;
 
 @end
 
@@ -113,6 +114,8 @@ static NSString *const kWMFContributorsKey = @"contributors";
     self = [super init];
     if (self) {
         self.theme = theme;
+        self.navigationTitleLabel = [[UILabel alloc] init];
+        self.titleLabelTappedCount = 0;
     }
     return self;
 }
@@ -130,19 +133,13 @@ static NSString *const kWMFContributorsKey = @"contributors";
     wv.navigationDelegate = self;
 
     self.webView = wv;
-    
+
     [self loadAboutHTML];
-    
+
     self.webView.opaque = NO;
     [self applyTheme:self.theme];
 
-    self.buttonX = [UIBarButtonItem wmf_buttonType:WMFButtonTypeX target:self action:@selector(closeButtonPressed)];
-
-    self.buttonCaretLeft = [UIBarButtonItem wmf_buttonType:WMFButtonTypeCaretLeft target:self action:@selector(leftButtonPressed)];
-
-    self.buttonX.accessibilityLabel = WMFLocalizedStringWithDefaultValue(@"menu-cancel-accessibility-label", nil, nil, @"Cancel", @"Accessible label text for toolbar cancel button {{Identical|Cancel}}");
-    self.buttonCaretLeft.accessibilityLabel = WMFCommonStrings.accessibilityBackTitle;
-
+    [self setupNavigationBar];
     [self updateNavigationBar];
 }
 
@@ -150,10 +147,6 @@ static NSString *const kWMFContributorsKey = @"contributors";
     NSURL *assetsFolderURL = [[NSBundle wmf] wmf_assetsFolderURL];
     NSURL *aboutFileURL = [assetsFolderURL URLByAppendingPathComponent:@"about.html" isDirectory:NO];
     [self.webView loadFileURL:aboutFileURL allowingReadAccessToURL:assetsFolderURL];
-}
-- (void)closeButtonPressed {
-    [self.presentingViewController dismissViewControllerAnimated:YES
-                                                      completion:nil];
 }
 
 - (void)leftButtonPressed {
@@ -166,9 +159,28 @@ static NSString *const kWMFContributorsKey = @"contributors";
 
 #pragma mark - Navigation Bar Configuration
 
+- (void)setupNavigationBar {
+    self.navigationTitleLabel.font = [WMFFontWrapper fontFor:WMFFontsSemiboldHeadline compatibleWithTraitCollection:self.traitCollection];
+    self.navigationTitleLabel.userInteractionEnabled = YES;
+    UITapGestureRecognizer *tapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(didTapTitleViewWithGestureRecognizer:)];
+    [self.navigationTitleLabel addGestureRecognizer:tapGestureRecognizer];
+    self.navigationItem.titleView = self.navigationTitleLabel;
+}
+
+- (void)didTapTitleViewWithGestureRecognizer:(UITapGestureRecognizer *)tapGestureRecognizer {
+    self.titleLabelTappedCount += 1;
+
+    if (self.titleLabelTappedCount >= 7) {
+        [self presentDeveloperSettings];
+    }
+}
+
 - (void)updateNavigationBar {
-    self.title = self.title;
-    self.navigationItem.leftBarButtonItem = [self isDisplayingLicense] ? self.buttonCaretLeft : nil;
+    self.navigationTitleLabel.text = self.title;
+
+    self.navigationItem.largeTitleDisplayMode = UINavigationItemLargeTitleDisplayModeNever;
+    self.navigationController.hidesBarsOnSwipe = NO;
+    [self.navigationController setNavigationBarHidden:NO animated:YES];
 }
 
 - (NSString *)title {
@@ -176,6 +188,30 @@ static NSString *const kWMFContributorsKey = @"contributors";
         return WMFLocalizedStringWithDefaultValue(@"about-libraries-license", nil, nil, @"License", @"About page link title that will display a license for a library used in the app {{Identical|License}}");
     }
     return WMFLocalizedStringWithDefaultValue(@"about-title", nil, nil, @"About", @"Title for credits page {{Identical|About}}");
+}
+
+#pragma mark - Developer Settings
+
+- (void)presentDeveloperSettings {
+    NSString *developerSettings = WMFLocalizedStringWithDefaultValue(@"developer-settings", nil, nil, @"Developer Settings", @"Title for developer settings view.");
+    NSString *doNotPostImageRecommendations = WMFLocalizedStringWithDefaultValue(@"developer-settings-suppress-image-rec-post", nil, nil, @"Do not post image recommendations edit.", @"Title for setting to suppress image recommendations edit postsing. Displayed on the developer settings view.");
+
+    NSString *enableAltTextExperimentForEN = WMFLocalizedStringWithDefaultValue(@"developer-settings-enable-alt-text-experiment-en", nil, nil, @"Enable Alt Text experiment for English Wikipedia.", @"Title for setting to enable alt text experiment for English Wikipedia. Displayed on the developer settings view.");
+
+    NSString *alwaysShowAltTextEntryPoint = WMFLocalizedStringWithDefaultValue(@"developer-settings-always-show-alt-text-entry-point", nil, nil, @"Always show alt text entry point.", @"Title for always showing the alt text experiment entry point. Displayed on the developer settings view.");
+
+    NSString *sendAnalyticsToWMFLabs = WMFLocalizedStringWithDefaultValue(@"developer-settings-send-analytics-to-wmflabs", nil, nil, @"Send analytics to wmflabs.", @"Title for setting to send analytics to a different backend. Displayed on the developer settings view.");
+
+    NSString *enableYearInReview = WMFLocalizedStringWithDefaultValue(@"developer-settings-enable-year-in-review", nil, nil, @"Enable Year in Review", @"Title for enabling the Year in Review feature. Displayed on the developer settings view.");
+
+    NSString *bypassDonation = WMFLocalizedStringWithDefaultValue(@"developer-settings-bypass-donation", nil, nil, @"Bypass Donation", @"Title for option to bypass a donation in developer settings menu.");
+
+    WMFDeveloperSettingsLocalizedStrings *localizedStrings = [[WMFDeveloperSettingsLocalizedStrings alloc] initWithDeveloperSettings:developerSettings doNotPostImageRecommendations:doNotPostImageRecommendations enableAltTextExperimentForEN:enableAltTextExperimentForEN alwaysShowAltTextEntryPoint:alwaysShowAltTextEntryPoint sendAnalyticsToWMFLabs:sendAnalyticsToWMFLabs enableYearinReview:enableYearInReview bypassDonation:bypassDonation close:WMFCommonStrings.closeButtonAccessibilityLabel];
+    WMFDeveloperSettingsViewModel *viewModel = [[WMFDeveloperSettingsViewModel alloc] initWithLocalizedStrings:localizedStrings];
+
+    WMFDeveloperSettingsViewController *viewController = [[WMFDeveloperSettingsViewController alloc] initWithViewModel:viewModel];
+    WMFComponentNavigationController *navVC = [[WMFComponentNavigationController alloc] initWithRootViewController:viewController modalPresentationStyle:UIModalPresentationOverFullScreen];
+    [self presentViewController:navVC animated:YES completion:nil];
 }
 
 #pragma mark - Accessors
@@ -282,7 +318,7 @@ static NSString *const kWMFContributorsKey = @"contributors";
         [vc applyTheme:self.theme];
         vc.navigationItem.backBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"" style:self.navigationItem.backBarButtonItem.style target:nil action:nil];
 
-        WMFThemeableNavigationController *nc = [[WMFThemeableNavigationController alloc] initWithRootViewController:vc theme:self.theme];
+        WMFComponentNavigationController *nc = [[WMFComponentNavigationController alloc] initWithRootViewController:vc modalPresentationStyle:UIModalPresentationOverFullScreen];
         [self presentViewController:nc animated:YES completion:nil];
 
         decisionHandler(WKNavigationActionPolicyCancel);
@@ -346,10 +382,11 @@ static NSString *const kWMFContributorsKey = @"contributors";
 #pragma mark - WMFThemeable
 
 - (void)applyTheme:(WMFTheme *)theme {
-    [super applyTheme:theme];
     if (self.viewIfLoaded == nil) {
         return;
     }
+    self.theme = theme;
+    self.navigationTitleLabel.textColor = theme.colors.primaryText;
     self.view.backgroundColor = theme.colors.paperBackground;
     [self.webView wmf_setTextFontColor:theme];
     [self.webView wmf_setLogoStyleWithTheme:theme];

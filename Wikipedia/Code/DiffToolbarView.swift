@@ -10,7 +10,7 @@ protocol DiffToolbarViewDelegate: AnyObject {
     func tappedEditHistory()
     func tappedWatch()
     func tappedUnwatch()
-    var isLoggedIn: Bool { get }
+    var isPermanent: Bool { get }
 }
 
 class DiffToolbarView: UIView {
@@ -184,7 +184,7 @@ class DiffToolbarView: UIView {
     }
 
     private func setItems() {
-        let flexibleSpace = UIBarButtonItem.flexibleSpaceToolbar()
+        let flexibleSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
 
         toolbar.items = [flexibleSpace, nextButton, flexibleSpace, previousButton, flexibleSpace, undoButton, flexibleSpace, thankButton, flexibleSpace, moreButton, flexibleSpace]
     }
@@ -237,7 +237,7 @@ extension DiffToolbarView: Themeable {
         moreButton.apply(theme: theme)
 
         if let delegate = delegate,
-            !delegate.isLoggedIn {
+            !delegate.isPermanent {
             if let button = thankButton.customView as? UIButton {
                 button.tintColor = theme.colors.disabledLink
             }

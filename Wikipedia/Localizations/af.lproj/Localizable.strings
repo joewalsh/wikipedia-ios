@@ -143,7 +143,6 @@
 "main-menu-account-login" = "Teken aan";
 "main-menu-account-logout" = "Teken uit";
 "main-menu-account-logout-are-you-sure" = "Is u seker u wil uitteken?";
-"main-menu-account-logout-cancel" = "Kanselleer";
 "main-menu-account-title-logged-in" = "Aangeteken as $1";
 "main-menu-heading-legal" = "Privaatheid en Voorwaardes";
 "main-menu-nearby" = "Naby";
@@ -152,7 +151,6 @@
 "main-menu-terms-of-use" = "Gebruiksvoorwaardes";
 "main-menu-title" = "Meer";
 "main-menu-zero-faq" = "Gewilde vrae oor Wikipedia Zero";
-"menu-cancel-accessibility-label" = "Kanselleer";
 // Fuzzy
 "more-languages-tooltip-description" = "Deursoek Wikipedia in bykans 300 tale";
 "more-languages-tooltip-title" = "Voeg tale by";

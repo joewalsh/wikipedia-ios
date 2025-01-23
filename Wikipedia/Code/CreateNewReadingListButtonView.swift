@@ -1,8 +1,7 @@
-import UIKit
+import WMFComponents
 
-public class CreateNewReadingListButtonView: UIView {
+public class CreateNewReadingListButtonView: UICollectionReusableView {
     @IBOutlet weak var button: AlignedImageButton!
-    @IBOutlet private weak var separator: UIView!
 
     public override func awakeFromNib() {
         super.awakeFromNib()
@@ -23,7 +22,7 @@ public class CreateNewReadingListButtonView: UIView {
     }
 
     private func updateFonts() {
-        button.titleLabel?.font = UIFont.wmf_font(.semiboldBody, compatibleWithTraitCollection: traitCollection)
+        button.titleLabel?.font = WMFFont.for(.boldCallout, compatibleWith: traitCollection)
     }
 
 }
@@ -32,6 +31,5 @@ extension CreateNewReadingListButtonView: Themeable {
     public func apply(theme: Theme) {
         backgroundColor = theme.colors.paperBackground
         button.tintColor = theme.colors.link
-        separator.backgroundColor = theme.colors.border
     }
 }

@@ -1,12 +1,10 @@
-import UIKit
+import WMFComponents
 
 final class InsertMediaSettingsImageView: UIView {
     @IBOutlet private weak var imageView: UIImageView!
     @IBOutlet private weak var imageDescriptionLabel: UILabel!
     @IBOutlet private weak var titleButton: AutoLayoutSafeMultiLineButton!
     @IBOutlet private weak var separatorView: UIView!
-    @IBOutlet weak var buttonHeightConstraint: NSLayoutConstraint!
-    @IBOutlet weak var imageHeightConstraint: NSLayoutConstraint!
 
     var image: UIImage? {
         didSet {
@@ -42,17 +40,8 @@ final class InsertMediaSettingsImageView: UIView {
     }
 
     private func updateFonts() {
-        imageDescriptionLabel.font = UIFont.wmf_font(.footnote, compatibleWithTraitCollection: traitCollection)
-        titleButton.titleLabel?.font = UIFont.wmf_font(.boldHeadline, compatibleWithTraitCollection: traitCollection)
-        
-    }
-
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        imageDescriptionLabel.numberOfLines = 2
-        imageDescriptionLabel.preferredMaxLayoutWidth = imageDescriptionLabel.bounds.width
-        buttonHeightConstraint.constant = imageHeightConstraint.constant/2
-        titleButton.titleLabel?.numberOfLines = 3
+        imageDescriptionLabel.font = WMFFont.for(.footnote, compatibleWith: traitCollection)
+        titleButton.titleLabel?.font = WMFFont.for(.boldHeadline, compatibleWith: traitCollection)
     }
 
     @IBAction private func performTitleAction(_ sender: UIButton) {
@@ -75,10 +64,8 @@ final class InsertMediaSettingsImageView: UIView {
     }
 
     private func configTitleButton() {
-        titleButton.titleLabel?.lineBreakMode = .byTruncatingMiddle
         titleButton.configuration?.contentInsets = .zero
         titleButton.configuration?.titlePadding = .zero
-        titleButton.sizeToFit()
     }
 }
 

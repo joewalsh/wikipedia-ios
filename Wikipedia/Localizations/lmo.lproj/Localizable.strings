@@ -157,7 +157,6 @@
 "data-migration-status" = "Adree a atualizà...";
 "description-add-title" = "Sgiontegh la descrizzion";
 "description-edit-for-article" = "Descrizzion de la vos per $1";
-"description-edit-learn-more" = "Di alter informazzion";
 "description-edit-length-warning" = "$1 / $2";
 "description-edit-license" = "A cambià la descrizzion de la vos, a aceti i $1 e de rilassà irrevocabilment i me contribuzzion a termin de la licenza $2.";
 "description-edit-pencil-introduction" = "Modifega l'introduzzion";
@@ -240,7 +239,6 @@
 "edit-summary-choice-fixed-grammar" = "Giusta la gramatega";
 "edit-summary-choice-fixed-typos" = "Giusta i refus";
 "edit-summary-choice-linked-words" = "Sgionta i ligam";
-"edit-summary-learn-more-text" = "Per savénn pussee";
 "edit-summary-placeholder-text" = "Comè che t'hhe mijorad la vos?";
 // Fuzzy
 "edit-watch-list-learn-more-text" = "Di alter informazzion sora la lista di pagine che te tegnet d'oeugg";
@@ -428,7 +426,6 @@
 "main-menu-account-logout" = "Và foeura";
 "main-menu-account-logout-are-you-sure" = "Te see sicur che te voeulet andà foeura?";
 "main-menu-account-logout-are-you-sure-message" = "A andà foeura te scancellareet i dati del cunt archiviad localment (notifiche e messagg), ma i dati i dati dal cunt i sarann an'mò disponibil in su l'internet e i sarann descaregad de noeuv se te veet dent an'mò.";
-"main-menu-account-logout-cancel" = "Anulla";
 "main-menu-account-title-logged-in" = "Te see dent come $1";
 "main-menu-heading-legal" = "Riservatezza e termin";
 "main-menu-nearby" = "Chì adree";
@@ -437,7 +434,6 @@
 "main-menu-terms-of-use" = "Termin de utilizazzion";
 "main-menu-title" = "Pussee";
 "main-menu-zero-faq" = "FAQ de Wikipedia Zero";
-"menu-cancel-accessibility-label" = "Anulla";
 "more-languages-tooltip-description" = "Cerca Wikipedia in pussee de 300 lengue";
 "more-languages-tooltip-title" = "Sgionta lengue";
 "move-articles-to-reading-list" = "Sposta $1 {{PLURAL:$1|vos}} a la lista de letura";

@@ -58,7 +58,11 @@ extension ArticleViewController: ArticleWebMessageHandling {
     func handlePCSDidFinishInitialSetup() {
         let oldState = state
         state = .loaded
-        showWIconPopoverIfNecessary()
+        
+        if altTextExperimentViewModel == nil {
+            showWIconPopoverIfNecessary()
+        }
+        
         refreshControl.endRefreshing()
         surveyTimerController?.articleContentDidLoad()
         loadSummary(oldState: oldState)
@@ -70,6 +74,7 @@ extension ArticleViewController: ArticleWebMessageHandling {
         assignScrollStateFromArticleFlagsIfNecessary()
         articleLoadWaitGroup?.leave()
         addToHistory()
+        persistPageViewsForWikipediaInReview()
         syncCachedResourcesIfNeeded()
     }
     
@@ -102,7 +107,7 @@ extension ArticleViewController: ArticleWebMessageHandling {
     
     func setupFooter() {
         // Always use Configuration.production for related articles
-        guard let baseURL = Configuration.production.pageContentServiceAPIURLForURL(articleURL, appending: []) else {
+        guard let baseURL = Configuration.production.pageContentServiceAPIURLForURL(articleURL, appending: [])?.wmf_site else {
             return
         }
         var menuItems: [PageContentService.Footer.Menu.Item] = [.talkPage, .lastEdited, .pageIssues, .disambiguation]

@@ -83,7 +83,6 @@
 "button-save-for-later" = "পাছত পঢ়াৰ বাবে সাঁচি থওক";
 "cancel" = "বাতিল কৰক";
 "close-button-accessibility-label" = "বন্ধ কৰক";
-"description-edit-learn-more" = "অধিক শিকক";
 "description-edit-pencil-introduction" = "ভূমিকা সম্পাদনা কৰক";
 "description-edit-pencil-title" = "প্ৰবন্ধৰ বিৱৰণ সম্পাদনা কৰক";
 "description-edit-title" = "বিৱৰণ সম্পাদনা কৰক";
@@ -194,7 +193,6 @@
 "main-menu-about" = "এপটোৰ বিষয়ে";
 "main-menu-account-login" = "লগইন কৰক";
 "main-menu-account-logout" = "প্ৰস্থান";
-"main-menu-account-logout-cancel" = "বাতিল কৰক";
 "main-menu-account-title-logged-in" = "$1 নামেৰে লগইন কৰিছে";
 "main-menu-heading-legal" = "গোপনীয়তা আৰু চৰ্তাৱলী";
 "main-menu-nearby" = "কাষৰীয়া";
@@ -203,7 +201,6 @@
 "main-menu-terms-of-use" = "ব্যৱহাৰৰ চৰ্তাৱলী";
 "main-menu-title" = "অধিক";
 "main-menu-zero-faq" = "ৱিকিপিডিয়া জিৰ' FAQ";
-"menu-cancel-accessibility-label" = "বাতিল";
 "more-languages-tooltip-description" = "৩০০ৰো অধিক ভাষাৰ ৱিকিপিডিয়াত সন্ধান কৰক";
 "more-languages-tooltip-title" = "ভাষা যোগ কৰক";
 "navbar-title-mode-edit-wikitext-preview" = "প্ৰাকদৰ্শন";

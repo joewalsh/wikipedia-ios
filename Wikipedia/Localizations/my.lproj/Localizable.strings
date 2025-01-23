@@ -130,7 +130,6 @@
 "data-migration-status" = "မွမ်းမံနေသည်...";
 "description-add-title" = "ဖော်ပြချက်ထည့်သွင်းပါ";
 "description-edit-for-article" = "$1အတွက် ဆောင်းပါးဖော်ပြချက်";
-"description-edit-learn-more" = "ထပ်မံ လေ့လာရန်";
 "description-edit-length-warning" = "$1 / $2";
 "description-edit-pencil-introduction" = "မိတ်ဆက် တည်းဖြတ်ရန်";
 "description-edit-pencil-title" = "ဆောင်းပါးဖော်ပြချက်ကို တည်းဖြတ်ရန်";
@@ -197,7 +196,6 @@
 "edit-summary-choice-fixed-grammar" = "သဒ္ဒါပြင်ခဲ့သည်";
 "edit-summary-choice-fixed-typos" = "စာလုံးပေါင်း ပြင်ခဲ့သည်";
 "edit-summary-choice-linked-words" = "လင့်ခ်များပေါင်းထည့်ခဲ့သည်";
-"edit-summary-learn-more-text" = "ပိုမို လေ့လာရန်";
 "edit-summary-placeholder-text" = "စာမျက်နှာကို တိုးတက်ကောင်းမွန်အောင် သင်မည်သို့ လုပ်ခဲ့သနည်း?";
 // Fuzzy
 "edit-watch-list-learn-more-text" = "စောင့်ကြည့်စာရင်းများအကြောင်း ပိုမိုလေ့လာမည်";
@@ -368,7 +366,6 @@
 "main-menu-account-login" = "အကောင့်ဝင်ရန်";
 "main-menu-account-logout" = "ထွက်ရန်";
 "main-menu-account-logout-are-you-sure" = "သင် ထွက်မည်ဆိုသည်မှာ သေချာပါသလား?";
-"main-menu-account-logout-cancel" = "မလုပ်တော့ပါ";
 "main-menu-account-title-logged-in" = "$1 အဖြစ် လော့ဂ်အင်ဝင်ခဲ့သည်";
 "main-menu-heading-legal" = "တရားဝင် အချက်အလက်များ";
 "main-menu-nearby" = "အနီးအနား";
@@ -376,7 +373,6 @@
 "main-menu-terms-of-use" = "အသုံးပြုခြင်းဆိုင်ရာ သတ်မှတ်ချက်များ";
 "main-menu-title" = "ပို၍";
 "main-menu-zero-faq" = "ဝီကီပီးဒီးယားသုည FAQ";
-"menu-cancel-accessibility-label" = "မလုပ်တော့ပါ";
 "more-languages-tooltip-description" = "ဝီကီပီးဒီးယားကို ဘာသာစကားပေါင်း ၃၀၀ ကျော်ခန့်တွင် ရှာဖွေရန်";
 "more-languages-tooltip-title" = "ဘာသာစကားများ ထည့်သွင်းရန်";
 "move-articles-to-reading-list" = "စာဖတ်စာရင်းသို့ ဆောင်းပါးပေါင်း {{PLURAL:$1|$1 ခု|$1 ခု}} ရွေ့ရန်";
@@ -691,7 +687,6 @@
 "unable-to-load-talk-page-title" = "ဆွေးနွေးချက်စာမျက်နှာကို ဝန်မဆွဲတင်နိုင်ပါ";
 "unknown-generic-text" = "အမည်မသိ";
 "vanish-account-continue-button-title" = "ဆက်လက်";
-"vanish-account-learn-more-text" = "ပိုမို လေ့လာရန်";
 "vanish-account-username-field" = "အသုံးပြုသူအမည်နှင့် အသုံးပြုသူစာမျက်နှာ";
 "vanish-account-warning-title" = "သတိပေးချက်";
 "variants-alert-dismiss-button" = "မလိုပါ၊ ကျေးဇူးတင်ပါသည်။";

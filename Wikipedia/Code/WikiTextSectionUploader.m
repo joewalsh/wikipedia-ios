@@ -54,23 +54,13 @@ NSString *const NSErrorUserInfoDisplayError = @"displayError";
     [self updateWithArticleURL:articleURL parameters:params captchaWord:nil completion:completion];
 }
 
-static NSString *appendTagToEditSummary(NSString * _Nullable editSummaryTag, NSString * _Nullable summary) {
-    NSString *finalSummary = summary;
-    if (editSummaryTag && editSummaryTag.length > 0 && summary && summary.length > 0) {
-        finalSummary = [summary stringByAppendingFormat:@" %@", editSummaryTag];
-    } else if (editSummaryTag && editSummaryTag.length > 0 && (!summary || summary.length == 0)) {
-        finalSummary = editSummaryTag;
-    }
-    return finalSummary;
-}
-
 - (void)prependToSectionID:(NSString *)sectionID
                          text:(NSString *)text
                 forArticleURL:(NSURL *)articleURL
                       summary:(nullable NSString *)summary
              isMinorEdit:(BOOL)isMinorEdit
                baseRevID:(nullable NSNumber *)baseRevID
-            editSummaryTag:(nullable NSString *)editSummaryTag
+            editTags:(nullable NSArray<NSString *> *)editTags
                    completion:(void (^)(NSDictionary * _Nullable result, NSError * _Nullable error))completion {
 
     NSString *title = articleURL.wmf_title;
@@ -79,14 +69,12 @@ static NSString *appendTagToEditSummary(NSString * _Nullable editSummaryTag, NSS
         return;
     }
 
-    NSString *finalSummary = appendTagToEditSummary(editSummaryTag, summary);
-
     NSMutableDictionary *params =
     @{
       @"action": @"edit",
       @"prependtext": text,
       @"section": sectionID,
-      @"summary": finalSummary,
+      @"summary": summary,
       @"title": articleURL.wmf_title,
       @"errorformat": @"html",
       @"errorsuselocal": @"1",
@@ -102,6 +90,10 @@ static NSString *appendTagToEditSummary(NSString * _Nullable editSummaryTag, NSS
     if (baseRevID) {
         params[@"baserevid"] = [NSString stringWithFormat:@"%@", baseRevID];
     }
+    
+    if (editTags && editTags.count > 0) {
+        params[@"matags"] = [editTags componentsJoinedByString:@","];
+    }
 
     [self updateWithArticleURL:articleURL parameters:params captchaWord:nil completion:completion];
 }
@@ -115,7 +107,7 @@ static NSString *appendTagToEditSummary(NSString * _Nullable editSummaryTag, NSS
              baseRevID:(nullable NSNumber *)baseRevID
              captchaId:(nullable NSString *)captchaId
            captchaWord:(nullable NSString *)captchaWord
-        editSummaryTag:(nullable NSString *)editSummaryTag
+              editTags:(nullable NSArray<NSString *> *)editTags
             completion:(void (^)(NSDictionary * _Nullable result, NSError * _Nullable error))completion {
     
     wikiText = wikiText ? wikiText : @"";
@@ -126,13 +118,11 @@ static NSString *appendTagToEditSummary(NSString * _Nullable editSummaryTag, NSS
         return;
     }
     
-    NSString *finalSummary = appendTagToEditSummary(editSummaryTag, summary);
-    
     NSMutableDictionary *params =
     @{
       @"action": @"edit",
       @"text": wikiText,
-      @"summary": finalSummary,
+      @"summary": summary,
       @"title": articleURL.wmf_title,
       @"errorformat": @"html",
       @"errorsuselocal": @"1",
@@ -160,6 +150,10 @@ static NSString *appendTagToEditSummary(NSString * _Nullable editSummaryTag, NSS
     if (captchaWord && captchaId) {
         params[@"captchaid"] = captchaId;
         params[@"captchaword"] = captchaWord;
+    }
+    
+    if (editTags && editTags.count > 0) {
+        params[@"matags"] = [editTags componentsJoinedByString:@","];
     }
     
     [self updateWithArticleURL:articleURL parameters:params captchaWord:captchaWord completion:completion];

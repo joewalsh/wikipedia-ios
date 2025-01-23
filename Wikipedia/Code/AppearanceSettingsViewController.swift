@@ -1,4 +1,4 @@
-import UIKit
+import WMFComponents
 
 protocol AppearanceSettingsItem {
     var title: String? { get }
@@ -41,7 +41,7 @@ struct AppearanceSettingsSpacerViewItem: AppearanceSettingsItem {
 }
 
 @objc(WMFAppearanceSettingsViewController)
-final class AppearanceSettingsViewController: SubSettingsViewController {
+final class AppearanceSettingsViewController: SubSettingsViewController, WMFNavigationBarConfiguring {
     static let customViewCellReuseIdentifier = "org.wikimedia.custom"
 
     var sections = [AppearanceSettingsSection]()
@@ -56,8 +56,6 @@ final class AppearanceSettingsViewController: SubSettingsViewController {
     
     override public func viewDidLoad() {
         super.viewDidLoad()
-        extendedLayoutIncludesOpaqueBars = true
-        title = CommonStrings.readingPreferences
         tableView.register(WMFSettingsTableViewCell.wmf_classNib(), forCellReuseIdentifier: WMFSettingsTableViewCell.identifier)
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: AppearanceSettingsViewController.customViewCellReuseIdentifier)
         tableView.register(WMFTableHeaderFooterLabelView.wmf_classNib(), forHeaderFooterViewReuseIdentifier: WMFTableHeaderFooterLabelView.identifier)
@@ -66,6 +64,18 @@ final class AppearanceSettingsViewController: SubSettingsViewController {
         tableView.sectionFooterHeight = UITableView.automaticDimension
         tableView.estimatedSectionFooterHeight = 44
         sections = sectionsForAppearanceSettings()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        configureNavigationBar()
+    }
+    
+    private func configureNavigationBar() {
+        let titleConfig = WMFNavigationBarTitleConfig(title: CommonStrings.readingPreferences, customView: nil, alignment: .centerCompact)
+        
+        configureNavigationBar(titleConfig: titleConfig, closeButtonConfig: nil, profileButtonConfig: nil, searchBarConfig: nil, hideNavigationBarOnScroll: false)
     }
     
     func sectionsForAppearanceSettings() -> [AppearanceSettingsSection] {
@@ -126,7 +136,7 @@ final class AppearanceSettingsViewController: SubSettingsViewController {
             
             if let dimming = vc as? ImageDimmingExampleViewController {
                 // themeTODO: define a semantic color for this instead of checking isDark
-                dimming.view.backgroundColor = self.theme.isDark ? self.theme.colors.paperBackground : .gray650
+                dimming.view.backgroundColor = self.theme.isDark ? self.theme.colors.paperBackground : WMFColor.gray650
                 dimming.isImageDimmed = UserDefaults.standard.wmf_isImageDimmingEnabled
             }
             
@@ -157,8 +167,8 @@ final class AppearanceSettingsViewController: SubSettingsViewController {
             cell.disclosureSwitch.isOn = UserDefaults.standard.wmf_isImageDimmingEnabled
             cell.disclosureSwitch.addTarget(self, action: #selector(self.handleImageDimmingSwitchValueChange(_:)), for: .valueChanged)
             cell.iconName = "settings-image-dimming"
-            cell.iconBackgroundColor = .gray400
-            cell.iconColor = .white
+            cell.iconBackgroundColor = WMFColor.gray400
+            cell.iconColor = WMFColor.white
             cell.selectionStyle = .none
         } else if item is AppearanceSettingsAutomaticTableOpenSwitchItem {
             cell.disclosureType = .switch
@@ -166,8 +176,8 @@ final class AppearanceSettingsViewController: SubSettingsViewController {
             cell.disclosureSwitch.isOn = UserDefaults.standard.wmf_isAutomaticTableOpeningEnabled
             cell.disclosureSwitch.addTarget(self, action: #selector(self.handleAutomaticTableOpenSwitchValueChange(_:)), for: .valueChanged)
             cell.iconName = "settings-tables-expand"
-            cell.iconBackgroundColor = .blue300
-            cell.iconColor = .white
+            cell.iconBackgroundColor = WMFColor.blue300
+            cell.iconColor = WMFColor.white
             cell.selectionStyle = .none
         } else {
             cell.disclosureType = .none

@@ -131,7 +131,6 @@
 "description-add-title" = "Προσθήκη περιγραφής";
 // Fuzzy
 "description-edit-for-article" = "Περιγραφή τίτλου για $1";
-"description-edit-learn-more" = "Μάθετε περισσότερα";
 "description-edit-length-warning" = "$1 από $2";
 // Fuzzy
 "description-edit-pencil-title" = "Επεξεργασία περιγραφή τίτλου";
@@ -270,7 +269,6 @@
 "main-menu-account-login" = "Σύνδεση";
 "main-menu-account-logout" = "Αποσύνδεση";
 "main-menu-account-logout-are-you-sure" = "Είστε σίγουροι ότι θέλετε να αποσυνδεθείτε;";
-"main-menu-account-logout-cancel" = "Ακύρωση";
 "main-menu-account-title-logged-in" = "Συνδεδεμένος ως: $1";
 "main-menu-heading-legal" = "Ιδιωτικότητα και Όροι";
 "main-menu-nearby" = "Κοντινά";
@@ -279,7 +277,6 @@
 "main-menu-terms-of-use" = "Όροι χρήσης";
 "main-menu-title" = "Περισσότερα";
 "main-menu-zero-faq" = "Συχνές ερωτήσεις για το Wikipedia Zero";
-"menu-cancel-accessibility-label" = "Άκυρο";
 // Fuzzy
 "more-languages-tooltip-description" = "Αναζητήστε την Wikipedia σε σχεδόν 300 γλώσσες";
 // Fuzzy

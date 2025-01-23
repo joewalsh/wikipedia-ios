@@ -69,14 +69,12 @@
 "main-menu-about" = "د کاريال په اړه";
 "main-menu-account-login" = "ننوتل";
 "main-menu-account-logout" = "وتل";
-"main-menu-account-logout-cancel" = "ناگارل";
 "main-menu-account-title-logged-in" = "د $1 په توگه ورننوتئ";
 "main-menu-nearby" = "نژدې";
 "main-menu-privacy-policy" = "د پټنتيا تگلاره";
 "main-menu-rate-app" = "کاريال ارزول";
 "main-menu-terms-of-use" = "د کارولو شرطونه";
 "main-menu-title" = "نور";
-"menu-cancel-accessibility-label" = "ناگارل";
 "navbar-title-mode-edit-wikitext-preview" = "مخليدنه";
 "nearby-distance-label-feet" = "$1 گام";
 "nearby-distance-label-km" = "$1 کیلومتر";

@@ -1,4 +1,5 @@
 import UIKit
+import WMFComponents
 
 // MARK: - Delegate
 @objc public protocol TableOfContentsPresentationControllerTapDelegate {
@@ -40,7 +41,7 @@ open class TableOfContentsPresentationController: UIPresentationController, Them
     lazy var closeButton:UIButton = {
         let button = UIButton(frame: CGRect.zero)
         
-        button.setImage(UIImage(named: "close"), for: .normal)
+        button.setImage(WMFSFSymbolIcon.for(symbol: .close), for: .normal)
         button.addTarget(self, action: #selector(TableOfContentsPresentationController.didTap(_:)), for: .touchUpInside)
         
         button.accessibilityHint = WMFLocalizedString("table-of-contents-close-accessibility-hint", value:"Close", comment:"Accessibility hint for closing table of contents {{Identical|Close}}")
@@ -143,7 +144,7 @@ open class TableOfContentsPresentationController: UIPresentationController, Them
         
         // Fade in the dimming view alongside the transition
         if let transitionCoordinator = self.presentingViewController.transitionCoordinator {
-            transitionCoordinator.animate(alongsideTransition: {(context: UIViewControllerTransitionCoordinatorContext!) -> Void in
+            transitionCoordinator.animate(alongsideTransition: {(context: UIViewControllerTransitionCoordinatorContext!) in
                 self.backgroundView.alpha  = 1.0
                 }, completion:nil)
         }
@@ -158,7 +159,7 @@ open class TableOfContentsPresentationController: UIPresentationController, Them
     
     override open func dismissalTransitionWillBegin() {
         if let transitionCoordinator = self.presentingViewController.transitionCoordinator {
-            transitionCoordinator.animate(alongsideTransition: {(context: UIViewControllerTransitionCoordinatorContext!) -> Void in
+            transitionCoordinator.animate(alongsideTransition: {(context: UIViewControllerTransitionCoordinatorContext!) in
                 self.backgroundView.alpha  = 0.0
                 }, completion:nil)
         }
@@ -210,7 +211,7 @@ open class TableOfContentsPresentationController: UIPresentationController, Them
     override open func viewWillTransition(to size: CGSize, with transitionCoordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: transitionCoordinator)
 
-        transitionCoordinator.animate(alongsideTransition: {(context: UIViewControllerTransitionCoordinatorContext!) -> Void in
+        transitionCoordinator.animate(alongsideTransition: {(context: UIViewControllerTransitionCoordinatorContext!) in
             guard let containerView = self.containerView else {
                 return
             }
@@ -233,7 +234,7 @@ open class TableOfContentsPresentationController: UIPresentationController, Them
         self.presentedView?.layer.shadowColor = theme.colors.shadow.cgColor
         self.presentedView?.layer.shadowOffset = CGSize(width: 3, height: 5)
         self.presentedView?.clipsToBounds = false
-        self.closeButton.setImage(UIImage(named: "close"), for: .normal)
+        self.closeButton.setImage(WMFSFSymbolIcon.for(symbol: .close), for: .normal)
         self.statusBarBackground.isHidden = false
         
         self.backgroundView.effect = UIBlurEffect(style: theme.blurEffectStyle)

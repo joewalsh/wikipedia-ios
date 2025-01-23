@@ -1,3 +1,5 @@
+import WMFComponents
+
 private struct Section {
     let type: ItemType
     let footerText: String?
@@ -62,7 +64,7 @@ private enum ItemType: Int {
 }
 
 @objc(WMFStorageAndSyncingSettingsViewController)
-class StorageAndSyncingSettingsViewController: SubSettingsViewController {
+class StorageAndSyncingSettingsViewController: SubSettingsViewController, WMFNavigationBarConfiguring {
     @objc public var dataStore: MWKDataStore?
     private var indexPathForCellWithSyncSwitch: IndexPath?
     private var shouldShowReadingListsSyncAlertWhenViewAppears = false
@@ -84,13 +86,18 @@ class StorageAndSyncingSettingsViewController: SubSettingsViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = CommonStrings.settingsStorageAndSyncing
         tableView.register(WMFSettingsTableViewCell.wmf_classNib(), forCellReuseIdentifier: WMFSettingsTableViewCell.identifier)
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: UITableViewCell.identifier)
         tableView.register(WMFTableHeaderFooterLabelView.wmf_classNib(), forHeaderFooterViewReuseIdentifier: WMFTableHeaderFooterLabelView.identifier)
         tableView.sectionFooterHeight = UITableView.automaticDimension
         tableView.estimatedSectionFooterHeight = 44
         NotificationCenter.default.addObserver(self, selector: #selector(readingListsServerDidConfirmSyncWasEnabledForAccount(notification:)), name: ReadingListsController.readingListsServerDidConfirmSyncWasEnabledForAccountNotification, object: nil)
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        configureNavigationBar()
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -106,6 +113,12 @@ class StorageAndSyncingSettingsViewController: SubSettingsViewController {
                 self.shouldShowReadingListsSyncAlertWhenSyncEnabled = true
             }
         }
+    }
+    
+    private func configureNavigationBar() {
+        let titleConfig = WMFNavigationBarTitleConfig(title: CommonStrings.settingsStorageAndSyncing, customView: nil, alignment: .centerCompact)
+        
+        configureNavigationBar(titleConfig: titleConfig, closeButtonConfig: nil, profileButtonConfig: nil, searchBarConfig: nil, hideNavigationBarOnScroll: false)
     }
     
     deinit {
@@ -239,11 +252,13 @@ extension StorageAndSyncingSettingsViewController {
                 self.dataStore?.readingListsController.fullSync({})
                 self.shouldShowReadingListsSyncAlertWhenViewAppears = true
             }
-            let isLoggedIn = dataStore?.authenticationManager.isLoggedIn ?? false
-            if isLoggedIn && isSyncEnabled {
+            
+            let isPermanent = dataStore?.authenticationManager.authStateIsPermanent ?? false
+            
+             if isPermanent && isSyncEnabled {
                 dataStore?.readingListsController.fullSync({})
                 showReadingListsSyncAlert()
-            } else if !isLoggedIn {
+            } else if !isPermanent {
                 wmf_showLoginOrCreateAccountToSyncSavedArticlesToReadingListPanel(theme: theme, dismissHandler: nil, loginSuccessCompletion: loginSuccessCompletion, loginDismissedCompletion: nil)
             } else {
                 wmf_showEnableReadingListSyncPanel(theme: theme, oncePerLogin: false, didNotPresentPanelCompletion: nil) {
@@ -290,7 +305,7 @@ extension StorageAndSyncingSettingsViewController: WMFSettingsTableViewCellDeleg
         let isSwitchOn = sender.isOn
         
         switch settingsItemType {
-        case .syncSavedArticlesAndLists where !dataStore.authenticationManager.isLoggedIn:
+        case .syncSavedArticlesAndLists where !dataStore.authenticationManager.authStateIsPermanent:
             assert(!isSyncEnabled, "Sync cannot be enabled if user is not logged in")
             let dismissHandler = {
                 sender.setOn(false, animated: true)
@@ -300,7 +315,7 @@ extension StorageAndSyncingSettingsViewController: WMFSettingsTableViewCellDeleg
                 SettingsFunnel.shared.logSyncEnabledInSettings()
             }
             wmf_showLoginOrCreateAccountToSyncSavedArticlesToReadingListPanel(theme: theme, dismissHandler: dismissHandler, loginSuccessCompletion: loginSuccessCompletion, loginDismissedCompletion: dismissHandler)
-        case .syncSavedArticlesAndLists where dataStore.authenticationManager.isLoggedIn:
+        case .syncSavedArticlesAndLists where dataStore.authenticationManager.authStateIsPermanent:
             let setSyncEnabled = {
                 dataStore.readingListsController.setSyncEnabled(isSwitchOn, shouldDeleteLocalLists: false, shouldDeleteRemoteLists: !isSwitchOn)
                 if isSwitchOn {

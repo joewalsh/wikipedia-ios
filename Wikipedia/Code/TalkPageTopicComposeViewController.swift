@@ -1,4 +1,4 @@
-import UIKit
+import WMFComponents
 import WMF
 
 protocol TalkPageTopicComposeViewControllerDelegate: AnyObject {
@@ -11,7 +11,7 @@ struct TalkPageTopicComposeViewModel {
     let pageLink: URL?
 }
 
-class TalkPageTopicComposeViewController: ViewController {
+class TalkPageTopicComposeViewController: ThemeableViewController, WMFNavigationBarConfiguring {
     
     enum TopicComposeStrings {
         static let navigationBarTitle = WMFLocalizedString("talk-pages-topic-compose-navbar-title", value: "Topic", comment: "Top navigation bar title of talk page topic compose screen. Please prioritize for de, ar and zh wikis.")
@@ -32,13 +32,6 @@ class TalkPageTopicComposeViewController: ViewController {
         view.backgroundColor = .clear
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
-    }()
-    
-    lazy var closeButton: UIBarButtonItem = {
-        let button = UIBarButtonItem(image: UIImage(named: "close-inverse"), style: .plain, target: self, action: #selector(tappedClose))
-        button.accessibilityLabel = CommonStrings.closeButtonAccessibilityLabel
-        button.accessibilityHint = WMFLocalizedString("talk-page-topic-close-button-hint", value: "Close new topic", comment: "Accessibility hint for talk page new topic screen close button")
-        return button
     }()
     
     lazy var publishButton: UIBarButtonItem = {
@@ -146,7 +139,8 @@ class TalkPageTopicComposeViewController: ViewController {
     init(viewModel: TalkPageTopicComposeViewModel, authenticationManager: WMFAuthenticationManager, theme: Theme) {
         self.viewModel = viewModel
         self.authenticationManager = authenticationManager
-        super.init(theme: theme)
+        super.init(nibName: nil, bundle: nil)
+        self.theme = theme
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -164,12 +158,27 @@ class TalkPageTopicComposeViewController: ViewController {
         setupContainerStackView()
         updateFonts()
         apply(theme: theme)
-        self.title = Self.TopicComposeStrings.navigationBarTitle
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillChangeFrame(_:)), name: UIWindow.keyboardWillChangeFrameNotification, object: nil)
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        configureNavigationBar()
     }
     
     override func accessibilityPerformEscape() -> Bool {
         tappedClose()
         return true
+    }
+    
+    private func configureNavigationBar() {
+        let titleConfig = WMFNavigationBarTitleConfig(title: Self.TopicComposeStrings.navigationBarTitle, customView: nil, alignment: .centerCompact)
+        
+        let closeConfig = WMFNavigationBarCloseButtonConfig(text: CommonStrings.doneTitle, target: self, action: #selector(tappedClose), alignment: .leading)
+        
+        configureNavigationBar(titleConfig: titleConfig, closeButtonConfig: closeConfig, profileButtonConfig: nil, searchBarConfig: nil, hideNavigationBarOnScroll: false)
     }
 
     private func setupSafeAreaBackgroundView() {
@@ -264,7 +273,6 @@ class TalkPageTopicComposeViewController: ViewController {
         }
         
         navigationItem.rightBarButtonItem = rightItem
-        navigationItem.leftBarButtonItem = closeButton
     }
     
     var shouldBlockDismissal: Bool {
@@ -302,33 +310,11 @@ class TalkPageTopicComposeViewController: ViewController {
         updateFonts()
     }
     
-    override func keyboardDidChangeFrame(from oldKeyboardFrame: CGRect?, newKeyboardFrame: CGRect?) {
-        super.keyboardDidChangeFrame(from: oldKeyboardFrame, newKeyboardFrame: newKeyboardFrame)
-        
-        guard oldKeyboardFrame != newKeyboardFrame else {
-            return
-        }
-        
-        guard let newKeyboardFrame = newKeyboardFrame else {
-            scrollViewBottomConstraint?.constant = 0
-            return
-        }
-        
-        let safeAreaKeyboardFrame = safeAreaBackgroundView.frame.intersection(newKeyboardFrame)
-        scrollViewBottomConstraint?.constant = safeAreaKeyboardFrame.height + 16
-        
-        view.setNeedsLayout()
-        UIView.animate(withDuration: 0.2) {
-            self.view.layoutIfNeeded()
-        }
-    }
-    
     override func apply(theme: Theme) {
         super.apply(theme: theme)
         
         navigationController?.navigationBar.titleTextAttributes = theme.navigationBarTitleTextAttributes
         view.backgroundColor = theme.colors.midBackground
-        closeButton.tintColor = theme.colors.tertiaryText
         publishButton.tintColor = theme.colors.link
         containerScrollView.backgroundColor = .clear
         containerStackView.backgroundColor = .clear
@@ -351,12 +337,51 @@ class TalkPageTopicComposeViewController: ViewController {
         updateSemanticContentAttribute(semanticContentAttribute: viewModel.semanticContentAttribute)
     }
     
+    // MARK: - Keyboard
+    
+    @objc func keyboardWillChangeFrame(_ notification: Notification) {
+        if let window = view.window, let endFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
+            let windowFrame = window.convert(endFrame, from: nil)
+            keyboardFrame = window.convert(windowFrame, to: view)
+        }
+    }
+        
+    @objc func keyboardDidHide(_ notification: Notification) {
+        keyboardFrame = nil
+    }
+    
+    private(set) var keyboardFrame: CGRect? {
+        didSet {
+            keyboardDidChangeFrame(from: oldValue, newKeyboardFrame: keyboardFrame)
+        }
+    }
+    
+    func keyboardDidChangeFrame(from oldKeyboardFrame: CGRect?, newKeyboardFrame: CGRect?) {
+
+        guard oldKeyboardFrame != newKeyboardFrame else {
+            return
+        }
+        
+        guard let newKeyboardFrame = newKeyboardFrame else {
+            scrollViewBottomConstraint?.constant = 0
+            return
+        }
+        
+        let safeAreaKeyboardFrame = safeAreaBackgroundView.frame.intersection(newKeyboardFrame)
+        scrollViewBottomConstraint?.constant = safeAreaKeyboardFrame.height + 16
+        
+        view.setNeedsLayout()
+        UIView.animate(withDuration: 0.2) {
+            self.view.layoutIfNeeded()
+        }
+    }
+    
     // MARK: Private
 
     private func updateFonts() {
-        titleTextField.font = UIFont.wmf_font(.headline, compatibleWithTraitCollection: traitCollection)
-        bodyTextView.font = UIFont.wmf_font(.callout, compatibleWithTraitCollection: traitCollection)
-        bodyPlaceholderLabel.font = UIFont.wmf_font(.callout, compatibleWithTraitCollection: traitCollection)
+        titleTextField.font = WMFFont.for(.headline, compatibleWith: traitCollection)
+        bodyTextView.font = WMFFont.for(.callout, compatibleWith: traitCollection)
+        bodyPlaceholderLabel.font = WMFFont.for(.callout, compatibleWith: traitCollection)
         finePrintTextView.attributedText = licenseTitleTextViewAttributedString
     }
     
@@ -373,11 +398,11 @@ class TalkPageTopicComposeViewController: ViewController {
             "</a>"
         )
 
-        let attributedString = substitutedString.byAttributingHTML(with: .caption1, boldWeight: .regular, matching: traitCollection, color: theme.colors.primaryText, linkColor: theme.colors.link, tagMapping: nil, additionalTagAttributes: nil)
+        let styles = HtmlUtils.Styles(font: WMFFont.for(.caption1, compatibleWith: traitCollection), boldFont: WMFFont.for(.boldCaption1, compatibleWith: traitCollection), italicsFont: WMFFont.for(.italicCaption1, compatibleWith: traitCollection), boldItalicsFont: WMFFont.for(.boldCaption1, compatibleWith: traitCollection), color: theme.colors.primaryText, linkColor: theme.colors.link, lineSpacing: 3)
 
-        return attributedString
+        return NSAttributedString.attributedStringFromHtml(substitutedString, styles: styles)
     }
-    
+
     private func evaluatePublishButtonEnabledState() {        
         publishButton.isEnabled = !(titleTextField.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !bodyTextView.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
@@ -430,7 +455,7 @@ class TalkPageTopicComposeViewController: ViewController {
         }
 
         guard let authenticationManager = authenticationManager,
-        !authenticationManager.isLoggedIn else {
+              !authenticationManager.authStateIsPermanent else {
             setupNavigationBar(isPublishing: true)
             delegate?.tappedPublish(topicTitle: title, topicBody: body, composeViewController: self)
             return

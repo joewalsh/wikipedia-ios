@@ -1,4 +1,4 @@
-import UIKit
+import WMFComponents
 import WMF
 
 typealias PageHistoryCollectionViewCellSelectionThemeModel = PageHistoryViewController.SelectionThemeModel
@@ -17,7 +17,10 @@ enum SelectionOrder: Int, CaseIterable {
 }
 
 @objc(WMFPageHistoryViewController)
-class PageHistoryViewController: ColumnarCollectionViewController {
+class PageHistoryViewController: ColumnarCollectionViewController, WMFNavigationBarConfiguring {
+    
+    fileprivate static let headerReuseIdentifier = "PageHistoryCountsView"
+    
     private let pageTitle: String
     private let pageURL: URL
 
@@ -43,7 +46,7 @@ class PageHistoryViewController: ColumnarCollectionViewController {
         return false
     }
 
-    private lazy var countsViewController = PageHistoryCountsViewController(pageTitle: pageTitle, locale: NSLocale.wmf_locale(for: pageURL.wmf_languageCode))
+    private var countsView: PageHistoryCountsView?
     private lazy var comparisonSelectionViewController: PageHistoryComparisonSelectionViewController = {
         let comparisonSelectionViewController = PageHistoryComparisonSelectionViewController(nibName: "PageHistoryComparisonSelectionViewController", bundle: nil)
         comparisonSelectionViewController.delegate = self
@@ -56,7 +59,8 @@ class PageHistoryViewController: ColumnarCollectionViewController {
         self.pageHistoryFetcherParams = PageHistoryRequestParameters(title: pageTitle)
         self.articleSummaryController = articleSummaryController
         self.authenticationManager = authenticationManager
-        super.init()
+        super.init(nibName: nil, bundle: nil)
+        hidesBottomBarWhenPushed = true
     }
 
     required init?(coder aDecoder: NSCoder) {
@@ -160,18 +164,8 @@ class PageHistoryViewController: ColumnarCollectionViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         hintController = PageHistoryHintController()
-        title = CommonStrings.historyTabTitle
-        navigationItem.backButtonTitle = WMFLocalizedString("page-history-revision-history-title", value: "Revision history", comment: "Title for revision history view. Please prioritize for de, ar and zh wikis.")
-        navigationItem.backButtonDisplayMode = .generic
-        navigationItem.rightBarButtonItem = compareButton
-        addChild(countsViewController)
-        navigationBar.addUnderNavigationBarView(countsViewController.view)
-        navigationBar.shadowColorKeyPath = \Theme.colors.border
-        countsViewController.didMove(toParent: self)
 
-        navigationBar.isBarHidingEnabled = false
-        navigationBar.isUnderBarViewHidingEnabled = true
-        navigationBar.allowsUnderbarHitsFallThrough = true
+        navigationItem.rightBarButtonItem = compareButton
 
         layoutManager.register(PageHistoryCollectionViewCell.self, forCellWithReuseIdentifier: PageHistoryCollectionViewCell.identifier, addPlaceholder: true)
         collectionView.dataSource = self
@@ -183,8 +177,14 @@ class PageHistoryViewController: ColumnarCollectionViewController {
 
         getEditCounts()
         getPageHistory()
+        
+        layoutManager.register(UINib(nibName: Self.headerReuseIdentifier, bundle: nil), forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: Self.headerReuseIdentifier, addPlaceholder: false)
     }
 
+    private var totalEditCount: Int?
+    private var firstEditDate: Date?
+    private var editCountsGroupedByType: EditCountsGroupedByType?
+    private var timeseriesOfEditsCounts: [NSNumber]?
     private func getEditCounts() {
         pageHistoryFetcher.fetchFirstRevision(for: pageTitle, pageURL: pageURL) { [weak self] result in
             DispatchQueue.main.async {
@@ -211,7 +211,9 @@ class PageHistoryViewController: ColumnarCollectionViewController {
                                     let totalEditCount = totalEditResponse.count
                                     if let firstEditDate = firstEditDate,
                                         totalEditResponse.limit == false {
-                                        self.countsViewController.set(totalEditCount: totalEditCount, firstEditDate: firstEditDate)
+                                        self.totalEditCount = totalEditCount
+                                        self.firstEditDate = firstEditDate
+                                        self.countsView?.set(totalEditCount: totalEditCount, firstEditDate: firstEditDate)
                                     }
                                     
                                 }
@@ -231,7 +233,9 @@ class PageHistoryViewController: ColumnarCollectionViewController {
                 case .failure(let error):
                     self.showNoInternetConnectionAlertOrOtherWarning(from: error)
                 case .success(let editCountsGroupedByType):
-                    self.countsViewController.editCountsGroupedByType = editCountsGroupedByType
+                    self.editCountsGroupedByType = editCountsGroupedByType
+                    self.countsView?.editCountsGroupedByType = editCountsGroupedByType
+                    break
                 }
             }
         }
@@ -243,12 +247,21 @@ class PageHistoryViewController: ColumnarCollectionViewController {
                 }
                 switch result {
                 case .failure:
-                    self.countsViewController.timeseriesOfEditsCounts = []
+                    self.countsView?.timeseriesOfEditsCounts = []
+                    break
                 case .success(let timeseriesOfEditCounts):
-                    self.countsViewController.timeseriesOfEditsCounts = timeseriesOfEditCounts
+                    self.timeseriesOfEditsCounts = timeseriesOfEditCounts
+                    self.countsView?.timeseriesOfEditsCounts = timeseriesOfEditCounts
+                    break
                 }
             }
         }
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        configureNavigationBar()
     }
 
     override func viewWillDisappear(_ animated: Bool) {
@@ -261,8 +274,17 @@ class PageHistoryViewController: ColumnarCollectionViewController {
         cellLayoutEstimate = nil
     }
     
+    private func configureNavigationBar() {
+        let titleConfig = WMFNavigationBarTitleConfig(title:  CommonStrings.historyTabTitle, customView: nil, alignment: .centerCompact)
+        
+        configureNavigationBar(titleConfig: titleConfig, closeButtonConfig: nil, profileButtonConfig: nil, searchBarConfig: nil, hideNavigationBarOnScroll: false)
+    }
+    
     private func appendSections(from results: HistoryFetchResults) {
         assert(Thread.isMainThread)
+        if self.pageHistorySections.isEmpty {
+            self.pageHistorySections.append(PageHistorySection(sectionTitle: "", items: []))
+        }
         var items = results.items()
         guard
             let last = self.pageHistorySections.last,
@@ -351,7 +373,7 @@ class PageHistoryViewController: ColumnarCollectionViewController {
         collectionView.backgroundColor = view.backgroundColor
         compareButton.tintColor = theme.colors.link
         cancelComparisonButton.tintColor = theme.colors.link
-        countsViewController.apply(theme: theme)
+        countsView?.apply(theme: theme)
         comparisonSelectionViewController.apply(theme: theme)
     }
 
@@ -371,6 +393,26 @@ class PageHistoryViewController: ColumnarCollectionViewController {
         }
         configure(cell: cell, at: indexPath)
         return cell
+    }
+    
+    override func collectionView(_ collectionView: UICollectionView, estimatedHeightForHeaderInSection section: Int, forColumnWidth columnWidth: CGFloat) -> ColumnarCollectionViewLayoutHeightEstimate {
+        if section == 0 {
+            return ColumnarCollectionViewLayoutHeightEstimate(precalculated: false, height: 150)
+        }
+        
+        return super.collectionView(collectionView, estimatedHeightForHeaderInSection: section, forColumnWidth: columnWidth)
+    }
+    
+    override func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+        if indexPath.section == 0 {
+            if let header = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: Self.headerReuseIdentifier, for: indexPath) as? PageHistoryCountsView {
+                header.configure(pageTitle: pageTitle, locale: NSLocale.wmf_locale(for: pageURL.wmf_languageCode), totalEditCount: totalEditCount, firstEditDate: firstEditDate, editCountsGroupedByType: editCountsGroupedByType, timeseriesOfEditsCounts: timeseriesOfEditsCounts, theme: theme)
+                self.countsView = header
+                return header
+            }
+        }
+        
+        return super.collectionView(collectionView, viewForSupplementaryElementOfKind: kind, at: indexPath)
     }
 
     override func configure(header: CollectionViewHeader, forSectionAt sectionIndex: Int, layoutOnly: Bool) {
@@ -465,7 +507,9 @@ class PageHistoryViewController: ColumnarCollectionViewController {
             cell.authorImage = item.isAnon ? UIImage(named: "anon") : UIImage(named: "user-edit")
             cell.author = item.user
             cell.sizeDiff = item.revisionSize
-            cell.comment = item.parsedComment?.removingHTML
+            if let comment = item.parsedComment {
+                cell.comment = comment.removingHTML
+            }
             if isSelected, let selectionIndex = indexPathsSelectedForComparisonGroupedByButtonTags.first(where: { $0.value == indexPath })?.key {
                 cell.isSelected = true
                 collectionView.selectItem(at: indexPath, animated: false, scrollPosition: [])
@@ -534,14 +578,14 @@ class PageHistoryViewController: ColumnarCollectionViewController {
     private lazy var secondSelectionThemeModel: SelectionThemeModel = {
         let backgroundColor: UIColor
         let timeColor: UIColor
-        backgroundColor = .orange600.withAlphaComponent(0.15)
+        backgroundColor = WMFColor.orange600.withAlphaComponent(0.15)
         // themeTODO: define a semantic color for this instead of checking isDark
         if theme.isDark {
             timeColor = theme.colors.tertiaryText
         } else {
-            timeColor = .gray500
+            timeColor = WMFColor.gray500
         }
-        return SelectionThemeModel(selectedImage: UIImage(named: "selected-accent"), borderColor: UIColor.orange600.withAlphaComponent(0.5), backgroundColor: backgroundColor, authorColor: UIColor.orange600, commentColor: theme.colors.primaryText, emptyCommentColor: theme.colors.secondaryText, timeColor: timeColor, sizeDiffAdditionColor: theme.colors.accent, sizeDiffSubtractionColor: theme.colors.destructive, sizeDiffNoDifferenceColor: theme.colors.link)
+        return SelectionThemeModel(selectedImage: UIImage(named: "selected-accent"), borderColor: WMFColor.orange600.withAlphaComponent(0.5), backgroundColor: backgroundColor, authorColor: WMFColor.orange600, commentColor: theme.colors.primaryText, emptyCommentColor: theme.colors.secondaryText, timeColor: timeColor, sizeDiffAdditionColor: theme.colors.accent, sizeDiffSubtractionColor: theme.colors.destructive, sizeDiffNoDifferenceColor: theme.colors.link)
     }()
 
     private lazy var firstSelectionThemeModel: SelectionThemeModel = {
@@ -552,14 +596,14 @@ class PageHistoryViewController: ColumnarCollectionViewController {
             backgroundColor = theme.colors.link.withAlphaComponent(0.2)
             timeColor = theme.colors.tertiaryText
         } else {
-            backgroundColor = .blue100
-            timeColor = .gray500
+            backgroundColor = WMFColor.blue100
+            timeColor = WMFColor.gray500
         }
         return SelectionThemeModel(selectedImage: nil, borderColor: theme.colors.link, backgroundColor: backgroundColor, authorColor: theme.colors.link, commentColor: theme.colors.primaryText, emptyCommentColor: theme.colors.secondaryText, timeColor: timeColor, sizeDiffAdditionColor: theme.colors.accent, sizeDiffSubtractionColor: theme.colors.destructive, sizeDiffNoDifferenceColor: theme.colors.link)
     }()
 
     private lazy var disabledSelectionThemeModel: SelectionThemeModel = {
-        return SelectionThemeModel(selectedImage: nil, borderColor: theme.colors.border, backgroundColor: theme.colors.paperBackground, authorColor: theme.colors.secondaryText, commentColor: theme.colors.secondaryText, emptyCommentColor: theme.colors.secondaryText, timeColor: .gray500, sizeDiffAdditionColor: theme.colors.secondaryText, sizeDiffSubtractionColor: theme.colors.secondaryText, sizeDiffNoDifferenceColor: theme.colors.secondaryText)
+        return SelectionThemeModel(selectedImage: nil, borderColor: theme.colors.border, backgroundColor: theme.colors.paperBackground, authorColor: theme.colors.secondaryText, commentColor: theme.colors.secondaryText, emptyCommentColor: theme.colors.secondaryText, timeColor: WMFColor.gray500, sizeDiffAdditionColor: theme.colors.secondaryText, sizeDiffSubtractionColor: theme.colors.secondaryText, sizeDiffNoDifferenceColor: theme.colors.secondaryText)
     }()
 
     override func collectionView(_ collectionView: UICollectionView, estimatedHeightForItemAt indexPath: IndexPath, forColumnWidth columnWidth: CGFloat) -> ColumnarCollectionViewLayoutHeightEstimate {

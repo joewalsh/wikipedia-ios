@@ -95,7 +95,6 @@
 "data-migration-status" = "အဝ်ႏဒင်ႏထိုကျာꩻ...";
 "description-add-title" = "ထဲမ်သော့ꩻအွောန်ႏနယ်ချက်ခရာႏ";
 "description-edit-for-article" = "ရောမ်ဖြုဲင်ꩻအွောန်ႏနယ်ချက် $1 တာႏ";
-"description-edit-learn-more" = "လွူꩻထွားထဲင်းတာႏ";
 "description-edit-length-warning" = "$1 / $2";
 "description-edit-pencil-title" = "မွဉ်းဖျင် ရောမ်ဖြုဲင်ꩻအွောန်ႏနယ်ချက်";
 "description-edit-publish" = "ဒင်ႏထင်ႏအွောန်ႏနယ်ချက်ခရာႏ";
@@ -132,7 +131,6 @@
 "edit-summary-add-summary-text" = "ထဲမ်သော့ꩻ မွဉ်းဖျင်ချုတ်အအဲဉ်ႏတဗာႏ";
 "edit-summary-choice-fixed-grammar" = "ဖျင်ခါꩻလဲဉ်း သဒ္ဒါႏ";
 "edit-summary-choice-linked-words" = "ထဲမ်သော့ꩻခါꩻလဲဉ်း လိဉ့်ဖိုင်ႏ";
-"edit-summary-learn-more-text" = "လွူꩻထွားထဲင်းတာႏ";
 "edit-watch-this-page-text" = "အုံပွေားထွား လိတ်မဲ့ငါယိုတာႏ";
 "editing-welcome-citations-title" = "အာႏကွိုꩻ ယွုမ်းအံႏသꩻဆွော့ꩻလꩻဒါႏ အရွီးခိုႏဖိုင်ႏ";
 "editing-welcome-set-knowledge-free-title" = "အွောန်ႏထွော့ အငိုꩻလို့တဝ်း ဗဟုသုတထာꩻသေꩻ";
@@ -284,7 +282,6 @@
 "main-menu-account-login" = "နွို့အကောက်";
 "main-menu-account-logout" = "ထန်ႏအကောက်";
 "main-menu-account-logout-are-you-sure" = "နာꩻမဲဉ်ထန်ႏထိုꩻမွေး အကောက်နဝ်ꩻ သေႏချာႏဒျာႏနဲ့ဟောင်း?";
-"main-menu-account-logout-cancel" = "မာꩻတဝ်းဒွုမ်";
 "main-menu-account-title-logged-in" = "နွို့လဲဉ်းအကောက် $1 အနေႏ";
 "main-menu-heading-legal" = "နမ်းရေꩻခရာႏ တောမ်ႏ စီꩻကန်ꩻအွောန်ႏထွော့ချက်ဖုံႏ";
 "main-menu-nearby" = "ဗော့ꩻရာꩻ";
@@ -293,7 +290,6 @@
 "main-menu-terms-of-use" = "သုင်ꩻအီခရာႏ အွောန်ႏထွော့ချက်ဖိုင်ႏ";
 "main-menu-title" = "ထဲင်းယင်း";
 "main-menu-zero-faq" = "ဝီခီပီးဒီးယားသုည ငဝ်းရီငဝ်းစေကဏ္ဍ";
-"menu-cancel-accessibility-label" = "မာꩻတဝ်းဒွုမ်";
 "more-languages-tooltip-description" = "ထိုမ်ႏထွားဝီခီပီးဒီးယား တောမ်ႏဘာႏသာႏငဝ်းငွါ ၃၀၀ လွို";
 "more-languages-tooltip-title" = "ထဲမ်သော့ꩻဘာႏသာႏငဝ်းငွါဖိုင်ႏ";
 "move-articles-to-reading-list" = "ဟော်ꩻထွားစာႏရင်ꩻကို ခြုဲင်းလွေꩻရောမ်ဖြုဲင်ꩻ {{PLURAL:$1|$1 ဗာႏ|$1 ဗာႏ}}";

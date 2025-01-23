@@ -177,7 +177,6 @@
 "data-migration-status" = "Яңыртыу...";
 "description-add-title" = "Тасуирлама өҫтәргә";
 "description-edit-for-article" = "$1 өсөн тасуирлама өҫтәргә";
-"description-edit-learn-more" = "Ентеклерәк";
 "description-edit-length-warning" = "$1 / $2";
 "description-edit-license" = "Тасуарламаны үҙгәртеп, мин $1 менән килешәм һәм үҙ өлөшөмдө кире алыу мөмкинлекһеҙ $2 лицензияһына ярашлы  баҫтырам.";
 "description-edit-pencil-introduction" = "Инеште мөхәррирләргә";
@@ -268,7 +267,6 @@
 "edit-summary-choice-fixed-grammar" = "Дөрөҫ яҙыу төҙәтелгән";
 "edit-summary-choice-fixed-typos" = "Баҫма хатаһы төҙәтелгән";
 "edit-summary-choice-linked-words" = "Өҫтәлгән һылтанмалар";
-"edit-summary-learn-more-text" = "Ентеклерәк";
 "edit-summary-placeholder-text" = "Битте нисек яҡшырттығыҙ?";
 // Fuzzy
 "edit-watch-list-learn-more-text" = "Күҙәтеү исемлектәре тураһында күберәк белергә";
@@ -510,7 +508,6 @@
 "main-menu-account-logout" = "Сығырға";
 "main-menu-account-logout-are-you-sure" = "Һеҙ ысынлап та сығырға уйлайһығыҙмы?";
 "main-menu-account-logout-are-you-sure-message" = "Системанан сыҡһағыҙ, иҫәп яҙмағыҙҙа һаҡланған мәғлүмәттәр (хәбәр итеүҙәр һәм хәбәрҙәр) юйыласаҡ, әммә иҫәп яҙмағыҙҙың мәғлүмәттәре элеккесә интернетта буласаҡ һәм ҡабаттан ингәндә күренәсәк.";
-"main-menu-account-logout-cancel" = "Кире алырға";
 "main-menu-account-title-logged-in" = "$1 булып танылған";
 "main-menu-heading-legal" = "Йәшеренлек һәм шарттар";
 "main-menu-nearby" = "Эргәлә";
@@ -519,7 +516,6 @@
 "main-menu-terms-of-use" = "Ҡулланыу шарттары";
 "main-menu-title" = "Тағы ла";
 "main-menu-zero-faq" = "Zero Википедияһы буйынса йыш бирелгән һорауҙар";
-"menu-cancel-accessibility-label" = "Баш тартыу";
 "more-languages-tooltip-description" = "Википедияла 300-ҙән ашыу телдә эҙләргә";
 "more-languages-tooltip-title" = "Телдәр өҫтәргә";
 "more-menu" = "Күберәк";

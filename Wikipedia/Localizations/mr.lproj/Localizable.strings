@@ -90,7 +90,6 @@
 "main-menu-account-login" = "सनोंद-प्रवेश करा";
 "main-menu-account-logout" = "बाहेर पडा";
 "main-menu-account-logout-are-you-sure" = "आपण निश्चित करता काय कि आपणास निर्गमित व्हायचे आहे?";
-"main-menu-account-logout-cancel" = "रद्द करा";
 "main-menu-account-title-logged-in" = "सनोंद प्रवेशित $1 म्हणून";
 "main-menu-heading-legal" = "गुप्तता व अटी";
 "main-menu-nearby" = "जवळपास";
@@ -99,7 +98,6 @@
 "main-menu-terms-of-use" = "वापरण्याच्या अटी";
 "main-menu-title" = "अधिक";
 "main-menu-zero-faq" = "विकिपीडीया झीरो एफएक्यू";
-"menu-cancel-accessibility-label" = "रद्द करा";
 "navbar-title-mode-edit-wikitext-preview" = "झलक";
 "nearby-distance-label-feet" = "$1 फूट";
 "nearby-distance-label-km" = "$1 कि.मी.";

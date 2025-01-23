@@ -162,7 +162,6 @@
 "data-migration-status" = "Ažuriranje...";
 "description-add-title" = "Dodavanje opisa";
 "description-edit-for-article" = "Opis članka za stranicu $1";
-"description-edit-learn-more" = "Saznajte više";
 "description-edit-length-warning" = "$1 / $2";
 "description-edit-license" = "Promenom opisa članka, prihvatam $1 i neopozivo objavljujem doprinose pod licencom $2.";
 "description-edit-pencil-introduction" = "Uredi uvod";
@@ -282,7 +281,6 @@
 "edit-summary-choice-fixed-grammar" = "Ispravljena pravopisna greška";
 "edit-summary-choice-fixed-typos" = "Ispravljena greška u kucanju";
 "edit-summary-choice-linked-words" = "Dodati linkovi";
-"edit-summary-learn-more-text" = "Saznajte više";
 "edit-summary-placeholder-text" = "Kako ste poboljšali članak?";
 // Fuzzy
 "edit-watch-list-learn-more-text" = "Saznajte više o listama za nadgledanje";
@@ -521,7 +519,6 @@
 "main-menu-account-logout" = "Odjavi me";
 "main-menu-account-logout-are-you-sure" = "Želite li zaista da se odjavite?";
 "main-menu-account-logout-are-you-sure-message" = "Odjavljivanje će obrisati vaše lokalno sačuvane podatke sa naloga (obaveštenja i poruke), ali će podaci vašeg naloga biti i dalje dostupni na internetu i biti ponovo preuzeti ukoliko se prijavite ponovo.";
-"main-menu-account-logout-cancel" = "Otkaži";
 "main-menu-account-title-logged-in" = "Prijavljeni ste kao $1";
 "main-menu-heading-legal" = "Privatnost i uslovi";
 "main-menu-nearby" = "U blizini";
@@ -530,7 +527,6 @@
 "main-menu-terms-of-use" = "Uslovi korišćenja";
 "main-menu-title" = "Više";
 "main-menu-zero-faq" = "Česta pitanja o Vikipediji nula";
-"menu-cancel-accessibility-label" = "Otkaži";
 "more-languages-tooltip-description" = "Pretražujte Vikipediju na preko 300 jezika";
 "more-languages-tooltip-title" = "Dodaj jezike";
 "more-menu" = "Više";
@@ -992,7 +988,6 @@
 "talk-page-subscription-failed-alert" = "Praćenje teme nije uspelo, pokušajte ponovo.";
 "talk-page-title-article-talk" = "Stranica za razgovor članka";
 "talk-page-title-user-talk" = "Korisnička stranica za razgovor";
-"talk-page-topic-close-button-hint" = "Zatvori novu temu";
 "talk-page-unsubscribe-to-topic" = "Prekini praćenje";
 "talk-page-unsubscribed-alert-subtitle" = "Više nećete dobijati obaveštenja o novim komentarima.";
 "talk-page-unsubscribed-alert-title" = "Više ne pratite.";
@@ -1044,7 +1039,6 @@
 "unwatch" = "Prekini nadgledanje";
 "user-title" = "Korisnik";
 "vanish-account-continue-button-title" = "Nastavi";
-"vanish-account-learn-more-text" = "Saznajte više";
 "vanish-account-username-field" = "Korisničko ime i korisnička stranica";
 "vanish-account-warning-body" = "Nestajanje je **poslednja opcija** i treba je koristiti **samo kada želite da zauvek prestanete sa uređivanjem**, kao i da sakrijete što više svojih prošlih asocijacija.\n\nBrisanje naloga na Vikipediji se vrši promenom naziva naloga tako da drugi ne mogu da prepoznaju Vaše doprinose u procesu koji se zove učtivi nestanak. **Nestajanje ne garantuje potpunu anonimnost i ne uklanja doprinose na projektima**.";
 "vanish-account-warning-title" = "Upozorenje";

@@ -100,7 +100,6 @@
 "data-migration-status" = "Yangilanmoqda...";
 "description-add-title" = "Tavsif qoʻshish";
 "description-edit-for-article" = "$1 uchun maqola tavsifi";
-"description-edit-learn-more" = "Batafsil maʼlumot";
 "description-edit-length-warning" = "$1 / $2";
 "description-edit-pencil-introduction" = "Kirishni tahrirlash";
 "description-edit-pencil-title" = "Maqola tavsifini tahrirlash";
@@ -136,7 +135,6 @@
 "edit-summary-choice-fixed-grammar" = "Grammatikani tuzatdim";
 "edit-summary-choice-fixed-typos" = "Xatoni tuzatdim";
 "edit-summary-choice-linked-words" = "Qoʻshilgan havolalar";
-"edit-summary-learn-more-text" = "Batafsil maʼlumot";
 "edit-watch-this-page-text" = "Bu sahifani kuzatish";
 "editing-welcome-be-bold-title" = "Ovozingiz muhimdir";
 "empty-no-search-results-message" = "Natija topilmadi";
@@ -205,7 +203,6 @@
 "main-menu-account-login" = "Kirmoq";
 "main-menu-account-logout" = "Chiqish";
 "main-menu-account-logout-are-you-sure" = "Chiqmoqchi ekanligingizga ishonchingiz komilmi?";
-"main-menu-account-logout-cancel" = "Bekor qilish";
 "main-menu-account-title-logged-in" = "$1 sifatida kirdingiz";
 "main-menu-heading-legal" = "Maxfiylik va shartlar";
 "main-menu-nearby" = "Yaqin atrofda";
@@ -214,7 +211,6 @@
 "main-menu-terms-of-use" = "Foydalanish shartlari";
 "main-menu-title" = "Yana";
 "main-menu-zero-faq" = "Wikipedia Zero TTS";
-"menu-cancel-accessibility-label" = "Bekor qilish";
 "more-languages-tooltip-description" = "Vikipediyani 300 dan ortiq tillarda qidiring";
 "more-languages-tooltip-title" = "Til qoʻshish";
 "navbar-title-mode-edit-wikitext-preview" = "Ko‘rib chiqish";

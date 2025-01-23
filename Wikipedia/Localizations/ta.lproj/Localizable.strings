@@ -158,7 +158,6 @@
 "main-menu-account-login" = "புகுபதிகை";
 "main-menu-account-logout" = "விடுபதிகை";
 "main-menu-account-logout-are-you-sure" = "நீங்கள் விடுபதிகை செய்ய உறுதியாக உள்ளீர்களா ?";
-"main-menu-account-logout-cancel" = "ரத்து செய்";
 "main-menu-account-title-logged-in" = "$1 என புகுபதிகை செய்யப்பட்டுள்ளது";
 "main-menu-heading-legal" = "அகவுரிமை மற்றும் வரையறைகள்";
 "main-menu-nearby" = "அருகிலுள்ள";
@@ -167,7 +166,6 @@
 "main-menu-terms-of-use" = "பயன்பாட்டு விதிமுறைகள்";
 "main-menu-title" = "மேலும்";
 "main-menu-zero-faq" = "விக்கிப்பீடியா சுழி அடிக்கடிக் கேட்கப்படும் கேள்விகள்";
-"menu-cancel-accessibility-label" = "கைவிடுக";
 "more-languages-tooltip-title" = "மொழிகளைச் சேர்க்கவும்";
 "navbar-title-mode-edit-wikitext-preview" = "முன்தோற்றம்";
 "nearby-distance-label-feet" = "$1 அடி";

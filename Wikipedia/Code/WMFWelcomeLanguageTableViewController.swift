@@ -1,3 +1,5 @@
+import WMFComponents
+
 // https://stackoverflow.com/a/34902501/135557
 class WMFWelcomeLanguageIntrinsicTableView: UITableView {
     override var contentSize: CGSize {
@@ -63,7 +65,7 @@ class WMFWelcomeLanguageTableViewController: ThemeableViewController, WMFPreferr
         let langsVC = WMFPreferredLanguagesViewController.preferredLanguagesViewController()
         langsVC.showExploreFeedCustomizationSettings = false
         langsVC.delegate = self
-        let navC = WMFThemeableNavigationController(rootViewController: langsVC, theme: self.theme)
+        let navC = WMFComponentNavigationController(rootViewController: langsVC, modalPresentationStyle: .overFullScreen)
         present(navC, animated: true, completion: nil)
     }
     
@@ -79,6 +81,6 @@ class WMFWelcomeLanguageTableViewController: ThemeableViewController, WMFPreferr
     }
 
     private func updateFonts() {
-        moreLanguagesButton.titleLabel?.font = UIFont.wmf_font(.semiboldFootnote, compatibleWithTraitCollection: traitCollection)
+        moreLanguagesButton.titleLabel?.font = WMFFont.for(.mediumFootnote, compatibleWith: traitCollection)
     }
 }

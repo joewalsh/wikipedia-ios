@@ -1,4 +1,4 @@
-import UIKit
+import WMFComponents
 
 protocol CollectionViewHeaderDelegate: AnyObject {
     func collectionViewHeaderButtonWasPressed(_ collectionViewHeader: CollectionViewHeader)
@@ -25,6 +25,7 @@ class CollectionViewHeader: SizeThatFitsReusableView {
     private let subtitleLabel: UILabel = UILabel()
     private let button: UIButton = UIButton()
     private let spacing: CGFloat = 5
+    var removeDetailTopMargins = false
     
     var title: String? {
         get {
@@ -74,20 +75,20 @@ class CollectionViewHeader: SizeThatFitsReusableView {
     
     override func updateFonts(with traitCollection: UITraitCollection) {
         super.updateFonts(with: traitCollection)
-        let titleTextStyle: DynamicTextStyle
-        let subtitleTextStyle: DynamicTextStyle = .subheadline
-        let buttonTextStyle: DynamicTextStyle = .subheadline
+        let titleTextStyle: WMFFont
+        let subtitleTextStyle: WMFFont = .subheadline
+        let buttonTextStyle: WMFFont = .subheadline
         switch style {
         case .detail:
             fallthrough
         case .explore:
-            titleTextStyle = .boldTitle2
+            titleTextStyle = .boldTitle1 // used to be boldtitle2
         default:
             titleTextStyle = .semiboldHeadline
         }
-        titleLabel.font = UIFont.wmf_font(titleTextStyle, compatibleWithTraitCollection: traitCollection)
-        subtitleLabel.font = UIFont.wmf_font(subtitleTextStyle, compatibleWithTraitCollection: traitCollection)
-        button.titleLabel?.font = UIFont.wmf_font(buttonTextStyle, compatibleWithTraitCollection: traitCollection)
+        titleLabel.font = WMFFont.for(titleTextStyle, compatibleWith: traitCollection)
+        subtitleLabel.font = WMFFont.for(subtitleTextStyle, compatibleWith: traitCollection)
+        button.titleLabel?.font = WMFFont.for(buttonTextStyle, compatibleWith: traitCollection)
     }
     
     override func layoutMarginsDidChange() {
@@ -103,7 +104,8 @@ class CollectionViewHeader: SizeThatFitsReusableView {
         case .recentSearches:
             additionalMargins = UIEdgeInsets(top: 10, left: 0, bottom: 5, right: 0)
         case .detail:
-            additionalMargins = UIEdgeInsets(top: 45, left: 0, bottom: 35, right: 0)
+            let top = removeDetailTopMargins ? 0 : 45
+            additionalMargins = UIEdgeInsets(top: CGFloat(top), left: 0, bottom: 35, right: 0)
         case .pageHistory:
             additionalMargins = UIEdgeInsets(top: 10, left: 6, bottom: 30, right: 6)
         default:
